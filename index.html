@@ -370,8 +370,17 @@ const I18N_EN = {
   '商用授權洽談：':'Commercial licensing: '
 };
 
-let LANG = 'zh';
-try{ if(localStorage.getItem('bce.lang') === 'en') LANG = 'en'; }catch(e){}
+/* 預設語言由瀏覽器語系判定，中文系語系走中文，其餘走英文 */
+function browserLang(){
+  const list = (navigator.languages && navigator.languages.length)
+    ? navigator.languages
+    : [navigator.language || ''];
+  return list.some(l => String(l).toLowerCase().startsWith('zh')) ? 'zh' : 'en';
+}
+/* 使用者按過切換鈕就聽使用者的，沒按過每次都重新問瀏覽器 */
+let savedLang = null;
+try{ savedLang = localStorage.getItem('bce.lang'); }catch(e){}
+let LANG = (savedLang === 'en' || savedLang === 'zh') ? savedLang : browserLang();
 
 function t(s){
   if(LANG === 'zh' || s == null) return s;
@@ -399,9 +408,10 @@ function applyLang(){
     : '品牌內容引擎 Brand Content Engine';
 }
 
-function setLang(lang){
+/* remember 只在使用者手動切換時為真，初始化偵測不寫入記憶 */
+function setLang(lang, remember){
   LANG = (lang === 'en') ? 'en' : 'zh';
-  try{ localStorage.setItem('bce.lang', LANG); }catch(e){}
+  if(remember){ try{ localStorage.setItem('bce.lang', LANG); }catch(e){} }
   document.querySelectorAll('.langsw button').forEach(b=>{
     b.classList.toggle('on', b.dataset.lang === LANG);
   });
@@ -409,9 +419,9 @@ function setLang(lang){
 }
 
 document.querySelectorAll('.langsw button').forEach(b=>{
-  b.addEventListener('click', ()=> setLang(b.dataset.lang));
+  b.addEventListener('click', ()=> setLang(b.dataset.lang, true));
 });
-setLang(LANG);
+setLang(LANG, false);
 </script>
 </body>
 </html>

@@ -29,8 +29,8 @@ No API key yet? See [Starting at zero cost: getting a Groq key](#starting-at-zer
 
 Two independent controls:
 
-- **Interface language**: the 中 / EN switch at the top right changes every label, button and message. Your choice is remembered in this browser.
-- **Output language**: the dropdown in step 00 decides what language the model writes in. You can read the interface in English while generating Traditional Chinese copy, or the other way round.
+- **Interface language**: defaults to your browser locale, Chinese for Chinese locales and English for everything else. The 中 / EN switch at the top right overrides it, and once you pick, your choice wins and is remembered in this browser.
+- **Output language**: the dropdown in step 00 decides what language the model writes in, also defaulting to your browser locale. The two are fully independent, so you can read the interface in English while generating Traditional Chinese copy, or the other way round.
 
 ## Privacy
 

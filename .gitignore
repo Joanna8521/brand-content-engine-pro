@@ -17,3 +17,5 @@ secrets.*
 *.log
 tmp/
 output/
+.vercel
+.env*

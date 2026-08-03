@@ -1034,7 +1034,16 @@ const I18N_PAT = [
   [/^(\d+) 字$/, '$1 chars']
 ];
 
-let LANG = (safeGet('bce.lang') === 'en') ? 'en' : 'zh';
+/* 預設語言由瀏覽器語系判定，中文系語系走中文，其餘走英文 */
+function browserLang(){
+  const list = (navigator.languages && navigator.languages.length)
+    ? navigator.languages
+    : [navigator.language || ''];
+  return list.some(l => String(l).toLowerCase().startsWith('zh')) ? 'zh' : 'en';
+}
+/* 使用者按過切換鈕就聽使用者的，沒按過每次都重新問瀏覽器 */
+const savedLang = safeGet('bce.lang');
+let LANG = (savedLang === 'en' || savedLang === 'zh') ? savedLang : browserLang();
 
 function t(s){
   if(LANG === 'zh' || s == null) return s;
@@ -1072,9 +1081,10 @@ function applyLang(){
   document.documentElement.lang = (LANG === 'en') ? 'en' : 'zh-Hant';
 }
 
-function setLang(lang){
+/* remember 只在使用者手動切換時為真，初始化偵測不寫入記憶 */
+function setLang(lang, remember){
   LANG = (lang === 'en') ? 'en' : 'zh';
-  safeSet('bce.lang', LANG);
+  if(remember) safeSet('bce.lang', LANG);
   document.querySelectorAll('.langsw button').forEach(b=>{
     b.classList.toggle('on', b.dataset.lang === LANG);
   });
@@ -2427,11 +2437,12 @@ new MutationObserver(()=>{ wrapTables(); if(LANG !== 'zh') applyLang(); })
 
 /* 介面語言切換 */
 document.querySelectorAll('.langsw button').forEach(b=>{
-  b.addEventListener('click', ()=> setLang(b.dataset.lang));
+  b.addEventListener('click', ()=> setLang(b.dataset.lang, true));
 });
 
-/* 產出語言記憶 */
-$('outlang').value = (safeGet('bce.outlang') === 'en') ? 'en' : 'zh';
+/* 產出語言：同樣先問記憶，沒有就跟著瀏覽器語系 */
+const savedOut = safeGet('bce.outlang');
+$('outlang').value = (savedOut === 'en' || savedOut === 'zh') ? savedOut : browserLang();
 $('outlang').addEventListener('change', ()=> safeSet('bce.outlang', $('outlang').value));
 
 /* 階段軌捲動 */
@@ -2450,7 +2461,7 @@ S.comps = [newComp(), newComp()];
 renderCompRows();
 refreshModels();
 updateSel();
-setLang(LANG);
+setLang(LANG, false);
 </script>
 </body>
 </html>

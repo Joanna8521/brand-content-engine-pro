@@ -69,7 +69,7 @@ Nine providers:
 | Provider | Suggested models | Get a key | Good for |
 |---|---|---|---|
 | **Anthropic Claude** | `claude-sonnet-5`, `claude-opus-5`, `claude-haiku-4-5-20251001` | console.anthropic.com | Long context, reliable structured output |
-| **OpenAI** | `gpt-4o-mini`, `gpt-4o`, `gpt-4.1-mini` | platform.openai.com | Most people already have an account |
+| **OpenAI** | n/a | n/a | **Not usable**, see the CORS note below |
 | **Google Gemini** | `gemini-2.0-flash`, `gemini-2.5-flash`, `gemini-2.5-pro` | aistudio.google.com | Free tier |
 | **DeepSeek** | `deepseek-chat`, `deepseek-reasoner` | platform.deepseek.com | Low cost per token |
 | **Kimi (Moonshot)** | `moonshot-v1-32k`, `moonshot-v1-128k`, `kimi-latest` | platform.moonshot.cn | Long documents |
@@ -80,7 +80,23 @@ Nine providers:
 
 ### About CORS
 
-This is a pure front end tool, so calling an API directly from the browser requires the provider to allow cross origin requests. **Anthropic, OpenAI, Gemini and Groq are known to work.** The China based providers (DeepSeek, Kimi, GLM, MiniMax) depend on their own CORS policy; if one blocks the request the tool will tell you exactly why.
+This is a pure front end tool, so calling an API directly from the browser requires the provider to allow cross origin requests. Measured against the live site on 3 August 2026 by sending a request with an invalid key: if the browser can read the 401, CORS is open.
+
+| Provider | Direct from a browser |
+|---|---|
+| Anthropic Claude | Works |
+| Google Gemini | Works |
+| DeepSeek | Works |
+| Kimi (Moonshot) | Works |
+| Zhipu GLM | Works |
+| MiniMax | Works |
+| Groq | Works |
+| Ollama | Works, set `OLLAMA_ORIGINS` first |
+| **OpenAI** | **Does not work** |
+
+**Why OpenAI does not work**: a request carrying an `authorization` header triggers a CORS preflight, and OpenAI does not answer that preflight, so the browser refuses the call. This is deliberate on their part, to stop people shipping keys in front end code. A request without the authorization header does get through, which confirms it is the preflight being refused rather than a network problem.
+
+**There is no front end workaround** short of running your own proxy, which is exactly the backend this project sets out to avoid. The tool therefore marks OpenAI as unusable and disables its test button, so you never waste a key on it.
 
 ### Starting at zero cost: getting a Groq key
 

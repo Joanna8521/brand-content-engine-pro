@@ -69,7 +69,7 @@
 | 供應商 | 建議模型 | 金鑰申請 | 適合誰 |
 |---|---|---|---|
 | **Anthropic Claude** | `claude-sonnet-5`、`claude-opus-5`、`claude-haiku-4-5-20251001` | console.anthropic.com | 長文脈絡與結構化輸出穩定 |
-| **OpenAI** | `gpt-4o-mini`、`gpt-4o`、`gpt-4.1-mini` | platform.openai.com | 最多人已有帳號 |
+| **OpenAI** | 不適用 | 不適用 | **無法使用**，見下方 CORS 說明 |
 | **Google Gemini** | `gemini-2.0-flash`、`gemini-2.5-flash`、`gemini-2.5-pro` | aistudio.google.com | 有免費額度 |
 | **DeepSeek** | `deepseek-chat`、`deepseek-reasoner` | platform.deepseek.com | 單價便宜 |
 | **Kimi（Moonshot）** | `moonshot-v1-32k`、`moonshot-v1-128k`、`kimi-latest` | platform.moonshot.cn | 長文處理 |
@@ -80,7 +80,23 @@
 
 ### 關於 CORS
 
-這是純前端工具，瀏覽器直連 API 需要供應商在回應中放行跨來源請求。**Anthropic、OpenAI、Gemini、Groq 已知可用**；中國幾家（DeepSeek、Kimi、GLM、MiniMax）視其 CORS 政策而定，若被擋下工具會直接告訴你原因。
+這是純前端工具，瀏覽器直連 API 需要供應商放行跨來源請求。以下是 2026 年 8 月 3 日從正式站實測的結果（用無效金鑰發請求，能讀到 401 就代表 CORS 有放行）：
+
+| 供應商 | 瀏覽器直連 |
+|---|---|
+| Anthropic Claude | 可用 |
+| Google Gemini | 可用 |
+| DeepSeek | 可用 |
+| Kimi（Moonshot） | 可用 |
+| 智譜 GLM | 可用 |
+| MiniMax | 可用 |
+| Groq | 可用 |
+| Ollama | 可用，需先設 `OLLAMA_ORIGINS` |
+| **OpenAI** | **不可用** |
+
+**OpenAI 為什麼不能用**：帶 `authorization` 標頭的請求會先送出 CORS 預檢，而 OpenAI 不回應這個預檢，瀏覽器就直接擋下。這是他們刻意的政策，用意是避免有人把金鑰放進前端。不帶授權標頭的請求反而能通，這也印證了是預檢被拒，不是網路問題。
+
+**沒有辦法在純前端繞過**，除非自己架一台代理伺服器，而那正好違背這個專案不要後端的前提。所以工具裡 OpenAI 那一項會直接標示不可用並停用測試按鈕，不會讓你白貼金鑰。
 
 ### 零成本起步：申請 Groq 金鑰
 

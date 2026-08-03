@@ -760,10 +760,10 @@ const PROVIDERS = {
     note:'長文脈絡與結構化輸出穩定。金鑰在 console.anthropic.com 申請。'
   },
   openai: {
-    label:'OpenAI', kind:'openai',
+    label:'OpenAI', kind:'openai', blocked:true,
     url:'https://api.openai.com/v1/chat/completions',
     models:['gpt-4o-mini','gpt-4o','gpt-4.1-mini'],
-    note:'最多人已經有帳號。金鑰在 platform.openai.com 申請。'
+    note:'OpenAI 不接受從瀏覽器直接呼叫，帶授權標頭的預檢請求會被擋下。這是他們的政策，不是你的設定問題，換一家供應商就好。'
   },
   gemini: {
     label:'Google Gemini', kind:'gemini',
@@ -859,7 +859,7 @@ const I18N_EN = {
   '智譜 GLM':'Zhipu GLM',
   'Ollama（本機模型）':'Ollama (local model)',
   '長文脈絡與結構化輸出穩定。金鑰在 console.anthropic.com 申請。':'Strong long context and reliable structured output. Get a key at console.anthropic.com.',
-  '最多人已經有帳號。金鑰在 platform.openai.com 申請。':'Most people already have an account. Get a key at platform.openai.com.',
+  'OpenAI 不接受從瀏覽器直接呼叫，帶授權標頭的預檢請求會被擋下。這是他們的政策，不是你的設定問題，換一家供應商就好。':'OpenAI does not accept direct calls from a browser; the preflight for the authorization header is refused. That is their policy, not a problem with your setup. Pick another provider.',
   '有免費額度。金鑰在 aistudio.google.com 申請。':'Has a free tier. Get a key at aistudio.google.com.',
   '單價便宜。金鑰在 platform.deepseek.com 申請。':'Low cost per token. Get a key at platform.deepseek.com.',
   '長文處理見長。海外帳號請改用 api.moonshot.ai 網域。':'Good with long documents. Outside China use the api.moonshot.ai domain.',
@@ -1190,9 +1190,11 @@ function refreshModels(){
   const saved = safeGet('bce.model.'+p);
   $('model').value = saved || P.models[0];
   /* https 頁面連不到 http://localhost，Ollama 在線上版一定會被 mixed content 擋掉 */
-  const blocked = location.protocol === 'https:' && /^http:\/\//i.test(P.url);
-  $('provNote').textContent = t(P.note || '') + (blocked ? ' ' + t('這個線上版是 https，瀏覽器會擋掉連向本機的請求。要用本機模型請把 HTML 下載到電腦上開。') : '');
-  $('provNote').classList.toggle('warnnote', blocked);
+  const mixed = location.protocol === 'https:' && /^http:\/\//i.test(P.url);
+  $('provNote').textContent = t(P.note || '') + (mixed ? ' ' + t('這個線上版是 https，瀏覽器會擋掉連向本機的請求。要用本機模型請把 HTML 下載到電腦上開。') : '');
+  /* P.blocked 是供應商本身不開放瀏覽器直連，實測確認過，不是暫時性問題 */
+  $('provNote').classList.toggle('warnnote', mixed || P.blocked === true);
+  $('testKey').disabled = P.blocked === true;
   const needsKey = P.needsKey !== false;
   $('key').placeholder = needsKey ? '貼上金鑰' : '這家不需要金鑰，留空即可';
   $('key').disabled = !needsKey;

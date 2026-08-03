@@ -20,6 +20,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>品牌內容引擎</title>
+<meta name="description" content="單檔 HTML 的品牌內容生產工具。爬自己的網站、拆解競品、產出可直接發的文案。無後端、無安裝，金鑰只留在你的瀏覽器。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://brand-content-engine-pro.vercel.app/brand-content-engine-pro">
+<meta property="og:title" content="品牌內容引擎 Brand Content Engine">
+<meta property="og:description" content="單檔 HTML，爬自己的網站、逐家拆解競品，一路推到可以直接發布的文案。9 家語言模型任選，無後端，金鑰只留在你的瀏覽器。">
+<meta property="og:image" content="https://brand-content-engine-pro.vercel.app/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="品牌內容引擎：把競品拆開看，再把自己寫清楚。">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://brand-content-engine-pro.vercel.app/assets/og.png">
 <!--
   思源黑體（Noto Sans TC）。這是本檔案唯一的外部資源，而且是選用性質：
   離線、內網或連不到 Google 時，這個 link 會靜默失敗，字體自動落回
@@ -37,7 +48,7 @@
   --line:#2f2f2f;
   --ink:#ededed;
   --ink-2:#9d9d9d;
-  --ink-3:#6b6b6b;
+  --ink-3:#8e8e8e;
   --acid:#dcfd50;
   --acid-dim:#8fa832;
   --warn:#ffb454;
@@ -154,6 +165,8 @@ input:focus,select:focus,textarea:focus,button:focus-visible{
   border-color:var(--acid-dim);box-shadow:0 0 0 2px rgba(220,253,80,.12)
 }
 textarea{resize:vertical;font-family:var(--mono);font-size:12.5px;line-height:1.65}
+/* 瀏覽器預設的 placeholder 灰只有 4.03:1，明確指定才過得了 WCAG AA */
+::placeholder{color:var(--ink-3);opacity:1}
 .row{display:grid;gap:12px}
 .row.c2{grid-template-columns:1fr 1fr}
 .row.c3{grid-template-columns:1fr 1fr 1fr}
@@ -781,6 +794,15 @@ const PROVIDERS = {
 };
 
 const $ = id => document.getElementById(id);
+
+/* favicon 直接沿用 --logo 裡那份 base64，避免同一張圖在檔案裡存兩份 */
+(function(){
+  const m = getComputedStyle(document.documentElement).getPropertyValue('--logo').match(/data:image[^"')]+/);
+  if(!m) return;
+  const l = document.createElement('link');
+  l.rel = 'icon'; l.type = 'image/png'; l.href = m[0];
+  document.head.appendChild(l);
+})();
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* =========================================================

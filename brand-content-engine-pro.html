@@ -431,6 +431,11 @@ details.raw textarea{margin-top:9px;min-height:190px}
       <input type="file" id="impFile" accept="application/json,.json" hidden>
       <button class="btn ghost sm" id="doPrint">列印</button>
     </div>
+    <div class="bar" id="fsBar" hidden>
+      <button class="btn ghost sm" id="linkFile">存成檔案</button>
+      <button class="btn ghost sm" id="openFile">開啟檔案</button>
+    </div>
+    <span class="dim" id="fileNote"></span>
     <div class="bar">
       <button class="btn ghost sm" id="clearWork">清空進度</button>
       <button class="btn ghost sm" id="cancelReq" hidden>取消目前請求</button>
@@ -480,6 +485,10 @@ details.raw textarea{margin-top:9px;min-height:190px}
       <button class="btn sm" id="testKey">測試連線</button>
       <label class="chk"><input type="checkbox" id="remember"> 在這台電腦記住金鑰</label>
       <span class="dim" id="keyNote"></span>
+    </div>
+    <p class="desc" style="margin-top:14px;margin-bottom:8px">還沒有金鑰也可以先看成果：載入一份跑完的範例，十段產出全部填好，不會發出任何請求。</p>
+    <div class="bar">
+      <button class="btn ghost sm" id="loadSample">看範例結果</button>
     </div>
     <div class="log" id="log0" hidden></div>
   </section>
@@ -914,6 +923,16 @@ const I18N_EN = {
   '匯入 JSON':'Import JSON',
   '清空進度':'Clear progress',
   '取消目前請求':'Cancel request',
+  '看範例結果':'See a worked example',
+  '還沒有金鑰也可以先看成果：載入一份跑完的範例，十段產出全部填好，不會發出任何請求。':'No key yet? Load a completed example: all ten steps filled in, with no request sent anywhere.',
+  '載入範例會覆蓋目前畫面上的進度，確定要繼續嗎？':'Loading the example will overwrite the progress on screen. Continue?',
+  '已載入範例結果，沒有發出任何 API 請求。想從自己的品牌開始，按「清空進度」。':'Example loaded, with no API request made. Press Clear progress to start from your own brand.',
+  '存成檔案':'Save to a file',
+  '換一個檔案':'Change file',
+  '開啟檔案':'Open a file',
+  '已接上檔案：':'Linked to file: ',
+  '開啟檔案會覆蓋目前畫面上的進度，確定要繼續嗎？':'Opening a file will overwrite the progress on screen. Continue?',
+  '已接上檔案，之後每次進度更新都會自動寫入。放在雲端硬碟的同步資料夾就等於自動備份。':'File linked. Every update from now on is written to it automatically. Put it in a synced cloud folder and you get cloud backup for free.',
   '已取消。':'Cancelled.',
   '請求超過時間上限，已自動中止。可以再試一次，或換一家供應商。':'The request exceeded the time limit and was aborted. Try again, or switch provider.',
   '超過時間上限':'timed out',
@@ -1320,6 +1339,22 @@ async function callLLM(sys, usr, logN){
   return txt;
 }
 
+
+/* =========================================================
+   範例資料：不用金鑰也能看到十段完整產出。
+   品牌與競品皆為虛構，不影射任何真實公司。
+   ========================================================= */
+const SAMPLE = {"v":1,"page":{"url":"https://tuosi-academy.example.com","title":"拓思學院｜給中型企業的 AI 導入內訓","meta":"description：不教工具操作，教團隊把 AI 接進既有流程。","text":"（範例資料，語料省略）"},"comps":[{"url":"https://skillforge.example.com","title":"SkillForge 技能鍛造所","meta":"","text":"（範例資料）","name":""},{"url":"https://ainow-training.example.com","title":"AI Now 企業培訓","meta":"","text":"（範例資料）","name":""}],"brand":{"brand_name":"拓思學院","one_liner":"不教工具怎麼點，教團隊把 AI 接進原本就在跑的流程","category":"B2B 企業內訓","offerings":["AI 導入診斷工作坊","部門別實作內訓","導入後三個月陪跑"],"value_props":["從既有流程出發，不要求團隊改工作方式","課後交付可直接使用的流程文件","講師具備實際導入經驗，不是純講理論"],"proof":["官網列出三個製造業與零售業的導入案例","課程頁標示每堂課的產出物清單"],"tone":{"traits":["務實","直接","不誇張"],"register":"專業但口語，不用行銷術語","person":"用「你們團隊」稱呼客戶，保持顧問距離","sample_sentence":"先別問要用哪個工具，先看你們每週花最多時間的那件事是什麼。"},"style":{"keywords":["流程","落地","產出物","陪跑"],"visual":"深色底加單一亮色，版面留白多","sentence_rhythm":"短句為主，常用具體數字收尾"},"lexicon":{"signature_words":["接進流程","產出物","陪跑","導入診斷"],"avoid_words":["賦能","顛覆","革命性","一站式"]},"positioning_axis":"在「教工具操作」與「談策略願景」之間，站在中間偏執行的位置","gaps":["官網沒有公開定價區間","沒有標示講師的實際導入年資","案例沒有量化成效數字"],"confidence":"medium"},"rivals":{"rivals":[{"code":"RIVAL-A","brand_name":"SkillForge 技能鍛造所","url":"https://skillforge.example.com","one_liner":"用遊戲化關卡讓員工在三十天內學會 AI 工具","category":"B2B 企業內訓","offerings":["線上關卡課程","團隊排行榜","完訓證書"],"value_props":["員工參與率高","進度可視化，主管好追蹤","價格透明"],"proof":["官網公開學員完訓率","有企業客戶 logo 牆"],"tone":{"traits":["熱血","活潑","鼓勵性"],"register":"口語，大量使用第二人稱"},"target_guess":"人資部門，尤其是需要向上呈報訓練成效的角色","price_signal":"官網公開定價，走人頭數計價，屬中低價位","content_angle":["強調參與率與完訓率","不談導入成效"],"strengths":["定價透明降低決策門檻","遊戲化讓人資好交差","品牌識別鮮明"],"weaknesses":["學完工具不等於接進流程","沒有課後陪跑","內容偏通用，不分產業"],"confidence":"medium"},{"code":"RIVAL-B","brand_name":"AI Now 企業培訓","url":"https://ainow-training.example.com","one_liner":"由顧問業出身講師帶領的 AI 策略工作坊","category":"B2B 企業內訓","offerings":["高階主管策略工作坊","產業趨勢簡報","年度顧問約"],"value_props":["講師背景資歷深","直接對接決策層","提供產業報告"],"proof":["講師列出前顧問公司經歷","官網有白皮書下載"],"tone":{"traits":["權威","正式","偏學術"],"register":"書面語，大量專有名詞"},"target_guess":"總經理與高階主管，決策預算較高的組織","price_signal":"不公開定價，需洽詢，明顯走高價位","content_angle":["以趨勢與框架為主","較少實作細節"],"strengths":["對決策層說服力強","白皮書帶來名單","單價高"],"weaknesses":["策略講完沒人接手執行","基層員工無感","決策週期長"],"confidence":"medium"}]},"versus":{"headline":"三家都在賣 AI 內訓，但只有你們把「課後真的用起來」當成交付項目","axes":[{"axis":"交付物具體程度","mine":"課後交付可直接使用的流程文件","rivals":[{"code":"RIVAL-A","name":"SkillForge","value":"完訓證書與排行榜"},{"code":"RIVAL-B","name":"AI Now","value":"策略框架與白皮書"}],"verdict":"領先","note":"另外兩家的交付物都無法直接進到工作流程"},{"axis":"價格透明度","mine":"官網未公開定價","rivals":[{"code":"RIVAL-A","name":"SkillForge","value":"公開人頭計價"},{"code":"RIVAL-B","name":"AI Now","value":"洽詢報價"}],"verdict":"落後","note":"在初期評估階段會被直接篩掉"},{"axis":"決策層說服力","mine":"以執行成果說話","rivals":[{"code":"RIVAL-A","name":"SkillForge","value":"以參與率說話"},{"code":"RIVAL-B","name":"AI Now","value":"以資歷與趨勢說話"}],"verdict":"相當","note":"強項不同，不是同一種說服路徑"},{"axis":"課後支援","mine":"三個月陪跑","rivals":[{"code":"RIVAL-A","name":"SkillForge","value":"無"},{"code":"RIVAL-B","name":"AI Now","value":"年度顧問約，另計費"}],"verdict":"領先","note":"這是最容易被感知、也最難被模仿的差距"},{"axis":"產業針對性","mine":"分部門設計","rivals":[{"code":"RIVAL-A","name":"SkillForge","value":"通用內容"},{"code":"RIVAL-B","name":"AI Now","value":"產業趨勢但不分部門"}],"verdict":"領先","note":"可以拿實際部門場景當招生素材"}],"my_strengths":["課後陪跑是結構性優勢","交付物具體到可以驗收","分部門設計貼近實際工作"],"my_weaknesses":["價格不透明拉長決策","缺量化成效數字","品牌識別度低於兩家對手"],"crowded_ground":["工具操作教學","AI 趨勢與願景論述"],"white_space":["導入成效的量化追蹤","中階主管這個斷層","課後三個月的行為改變"],"confidence":"medium"},"diff":{"positioning_statement":"拓思學院是唯一把「三個月後還在用」寫進交付項目的 AI 內訓，我們不賣課程時數，賣流程真的被改掉。","wedge":{"amplify":[{"point":"課後三個月陪跑","why":"兩家對手都沒有，且複製需要人力結構改變","how":"把陪跑期的實際紀錄做成公開案例"},{"point":"可驗收的產出物","why":"直接回應採購最在意的「買到什麼」","how":"課程頁逐條列出交付清單，附範本截圖"}],"avoid":[{"battlefield":"價格戰","why":"對手公開低價，跟進會直接壓垮陪跑的人力成本"},{"battlefield":"講師資歷比拚","why":"AI Now 在這條線上已經佔滿，比不出新的說服角度"}]},"message_pillars":[{"pillar":"課後才是真正的開始","one_liner":"上完課只是起點，三個月後還在用才算數","proof":["三個月陪跑機制","陪跑期紀錄"],"evidence_needed":["實際客戶的前後對照數據"]},{"pillar":"交付物看得見","one_liner":"你們買到的不是時數，是可以直接用的流程文件","proof":["產出物清單"],"evidence_needed":["可公開的文件範本"]},{"pillar":"從現有流程出發","one_liner":"不要求團隊改工作方式，先看每週最花時間的那件事","proof":["導入診斷工作坊"],"evidence_needed":["診斷流程的公開說明"]}],"language_moves":{"use":["接進流程","產出物","三個月後","可驗收"],"drop":["賦能","一站式","全方位","顛覆"]},"risks":["陪跑成本高，規模化時毛利會被壓縮","量化成效需要客戶配合提供數據","價格不透明的問題若不解決，前面的優勢接觸不到人"],"confidence":"medium"},"matrix":{"ta_summary":"決策鏈上有三種人：付錢的、要交差的、實際要用的。三家對手都只打到其中一種。","segments":[{"code":"SEG-A","name":"要交差的人資","one_liner":"需要一個能向上呈報的訓練成效","profile":{"role":"人資訓練承辦或主管","context":"年度訓練預算要花完，且要寫成果報告","pains":["課後沒人用，報告寫不出成效","找講師要花很多時間比較"],"desires":["有數字可以呈報","流程單純不出包"],"objections":["沒有公開價格，簽核流程難跑"]},"rival_pull":"SkillForge 的完訓率數字直接解決了報告問題","channels":["LinkedIn","人資社群","電子報"],"trigger_message":"完訓率高不等於用起來，我們給你三個月後還在用的證據"},{"code":"SEG-B","name":"夾在中間的部門主管","one_liner":"被要求導入 AI，但沒人告訴他怎麼開始","profile":{"role":"營運、行銷或客服部門主管","context":"上面要求提效率，下面反應沒時間學","pains":["不知道從哪個流程下手","怕投入後團隊反彈"],"desires":["有人帶著跑第一輪","不要打亂現有工作"],"objections":["之前上過課但沒有後續"]},"rival_pull":"AI Now 的策略工作坊聽起來層級高，但講完沒人接手","channels":["Facebook","LinkedIn","實體講座"],"trigger_message":"先別問要用哪個工具，先看你們每週花最多時間的那件事"}],"matrix":[{"persona_code":"SEG-A","persona_name":"要交差的人資","funnel":"認知","pillar":"課後才是真正的開始","angle":"完訓率與實際使用率的落差","formats":["數據圖卡","短文"],"channels":["LinkedIn"],"cta":"下載落差對照表","kpi":"名單數","cadence":"每週一則"},{"persona_code":"SEG-A","persona_name":"要交差的人資","funnel":"評估","pillar":"交付物看得見","angle":"逐條列出你會拿到什麼","formats":["清單圖卡"],"channels":["電子報"],"cta":"索取產出物清單","kpi":"索取率","cadence":"每兩週一則"},{"persona_code":"SEG-B","persona_name":"夾在中間的部門主管","funnel":"認知","pillar":"從現有流程出發","angle":"從最花時間的那件事開始","formats":["情境short","圖文"],"channels":["Facebook"],"cta":"看部門場景範例","kpi":"互動率","cadence":"每週兩則"},{"persona_code":"SEG-B","persona_name":"夾在中間的部門主管","funnel":"轉換","pillar":"課後才是真正的開始","angle":"三個月陪跑實際在做什麼","formats":["時間軸圖"],"channels":["LinkedIn","電子報"],"cta":"預約導入診斷","kpi":"預約數","cadence":"每月一則"}],"notes":["價格不透明會卡住 SEG-A 的簽核，建議至少公開級距","SEG-B 的內容要具體到部門場景才有感"]},"posts":{"plans":[{"persona_code":"SEG-A","persona_name":"要交差的人資","weeks":[{"week":1,"theme":"完訓率與使用率的落差","posts":[{"day":"週二","topic":"完訓率 92%，三個月後使用率剩多少","purpose":"建立問題意識","funnel":"認知","pillar":"課後才是真正的開始","angle":"拿數字打破完訓率的安全感","hook":"報告上寫完訓率 92%，但沒人問三個月後還有幾個人在用。","edge":"對手用完訓率當賣點，這裡直接指出它的盲點","format":"數據圖卡","cta":"你們公司量過使用率嗎"},{"day":"週五","topic":"訓練成效報告該放什麼數字","purpose":"提供可用工具","funnel":"認知","pillar":"交付物看得見","angle":"給人資一份可以直接抄的指標清單","hook":"訓練報告不要只寫參加人數，這三個數字主管才看得懂。","edge":"直接幫對方解決要交差的痛點","format":"清單圖卡","cta":"下載指標對照表"}]}]},{"persona_code":"SEG-B","persona_name":"夾在中間的部門主管","weeks":[{"week":1,"theme":"從最花時間的那件事開始","posts":[{"day":"週一","topic":"導入 AI 的第一步不是選工具","purpose":"降低啟動門檻","funnel":"認知","pillar":"從現有流程出發","angle":"把問題從工具選擇換成流程盤點","hook":"先別問要用哪個工具，先看你們每週花最多時間的那件事是什麼。","edge":"對手都在比工具，這裡不比","format":"圖文","cta":"留言說說你們最花時間的事"},{"day":"週四","topic":"客服部門的實際導入場景","purpose":"讓對方對號入座","funnel":"評估","pillar":"從現有流程出發","angle":"具體到部門的日常場景","hook":"客服每天花兩小時整理對話紀錄，這件事不用等公司決策就能改。","edge":"具體場景，不談願景","format":"情境short","cta":"看更多部門場景"}]}]}]},"copies":[{"ref":"SEG-A-W1-週二","persona":"要交差的人資","day":"週二","topic":"完訓率 92%，三個月後使用率剩多少","platform":"LinkedIn","variants":[{"label":"版本一","headline":"報告上的 92%，和三個月後的真相","body":"訓練報告寫完訓率 92%，看起來很漂亮。\n\n但很少有人往下問一句：三個月後，這 92% 裡面還有幾個人在用？\n\n我們接觸過的企業裡，這個數字通常掉到兩成以下。不是課上得不好，是課結束之後沒有人陪著把它接進日常流程。\n\n工具學會了，流程沒改，人就會回到原本的做法。這不是意志力問題，是設計問題。\n\n所以我們把三個月陪跑寫進交付項目。不是加值服務，是本來就該有的一部分。","cta":"你們公司量過訓練後的實際使用率嗎","hashtags":["#企業內訓","#AI導入","#人才發展"],"visual":"左右對照圖，左邊完訓率 92%，右邊三個月後使用率"}]},{"ref":"SEG-B-W1-週一","persona":"夾在中間的部門主管","day":"週一","topic":"導入 AI 的第一步不是選工具","platform":"Facebook","variants":[{"label":"版本一","headline":"先別選工具","body":"上面要求導入 AI，下面反應沒時間學。夾在中間的主管最難做。\n\n我們的建議是，先別開比較表。\n\n打開你們部門的行事曆，看這一週花最多時間的是哪件事。通常會是整理資料、寫重複的回覆、或是把同一份東西改成三種格式。\n\n那件事就是起點。不用等公司決策，不用改變任何人的工作方式，先讓它變快。\n\n等團隊自己感覺到差別，後面的推動就不用你一個人扛。","cta":"留言說說你們部門每週最花時間的是什麼","hashtags":["#AI導入","#部門管理"],"visual":"一週行事曆截圖，其中一格被圈起來"}]}],"sel":[]};
+
+
+/* 模型有時把宣告為陣列的欄位回成一個字串，直接 .map 會炸掉整段渲染。
+   一律先正規化成陣列，讓單一欄位的型別失誤不會拖垮整頁。 */
+function asArr(a){
+  if(Array.isArray(a)) return a.filter(x => x != null && x !== '');
+  if(a == null || a === '') return [];
+  return [a];
+}
+
 /* JSON 抽取：容忍圍欄與前後贅字 */
 function parseJSON(raw){
   let t = String(raw||'').trim();
@@ -1473,9 +1508,9 @@ function hasWork(){
     || S.copies.length || S.page.text || S.comps.some(c=>c.text || c.url));
 }
 
-function saveWork(){
-  if(!hasWork()){ safeDel(SAVE_KEY); dirty = false; return; }
-  const payload = {
+/* 匯出、自動存檔、寫入檔案共用同一份結構，格式才不會走鐘 */
+function exportPayload(){
+  return {
     v: 1,
     at: new Date().toISOString(),
     page: S.page,
@@ -1485,9 +1520,14 @@ function saveWork(){
     copies: S.copies,
     sel: [...S.sel]
   };
-  const ok = safeSet(SAVE_KEY, JSON.stringify(payload));
+}
+
+function saveWork(){
+  if(!hasWork()){ safeDel(SAVE_KEY); dirty = false; return; }
+  const ok = safeSet(SAVE_KEY, JSON.stringify(exportPayload()));
   if(!ok) log(0, '進度存檔失敗，瀏覽器儲存空間可能已滿。建議改用匯出 JSON 保留成果。', 'bad');
   dirty = false;
+  if(typeof writeFile === 'function') writeFile();
 }
 
 /* 把一份 payload 灌回狀態並重繪所有段落，匯入與還原共用 */
@@ -1509,16 +1549,29 @@ function restoreWork(d){
 
   $('url').value = S.page.url || '';
   $('pageText').value = S.page.text || '';
-  renderCompRows();
-  if(S.brand){  renderBrand(S.brand);   setState(1,'已取得','done'); setState(2,'已完成','done'); }
-  if(S.rivals){ renderRivals(S.rivals); setState(3,'已取得','done'); setState(4,'已完成','done'); }
-  if(S.versus){ renderVersus(S.versus); setState(5,'已完成','done'); }
-  if(S.diff){   renderDiff(S.diff);     setState(6,'已完成','done'); }
-  if(S.matrix){ renderMatrix(S.matrix); setState(7,'已完成','done'); }
-  if(S.posts){  renderPosts(S.posts);   setState(8,'已完成','done'); }
-  if(S.copies.length){ renderCopies();  setState(9,'已完成','done'); }
-  updateSel();
-  restoring = false;
+
+  /* 每段各自 try，一段資料有問題不該讓後面全部不見。
+     restoring 放在 finally 歸位，否則渲染一炸就再也不會存檔。 */
+  const steps = [
+    [()=>S.brand,        ()=>{ renderBrand(S.brand);   setState(1,'已取得','done'); setState(2,'已完成','done'); }, '02 品牌解析'],
+    [()=>S.rivals,       ()=>{ renderRivals(S.rivals); setState(3,'已取得','done'); setState(4,'已完成','done'); }, '04 競品解析'],
+    [()=>S.versus,       ()=>{ renderVersus(S.versus); setState(5,'已完成','done'); }, '05 雙打比較'],
+    [()=>S.diff,         ()=>{ renderDiff(S.diff);     setState(6,'已完成','done'); }, '06 差異化策略'],
+    [()=>S.matrix,       ()=>{ renderMatrix(S.matrix); setState(7,'已完成','done'); }, '07 行銷矩陣'],
+    [()=>S.posts,        ()=>{ renderPosts(S.posts);   setState(8,'已完成','done'); }, '08 貼文策略'],
+    [()=>S.copies.length,()=>{ renderCopies();         setState(9,'已完成','done'); }, '09 品牌文案']
+  ];
+  try{
+    renderCompRows();
+    steps.forEach(([has, run, name])=>{
+      if(!has()) return;
+      try{ run(); }
+      catch(e){ log(0, name + ' 這一段的資料格式有問題，已跳過：' + e.message, 'bad'); }
+    });
+    updateSel();
+  }finally{
+    restoring = false;
+  }
   return true;
 }
 
@@ -1669,7 +1722,7 @@ ${S.page.text.slice(0,18000)}
 function renderBrand(b){
   const el = $('outBrand');
   if(!b){ el.innerHTML = '<p class="empty">尚未執行。</p>'; return; }
-  const list = a => (a&&a.length) ? a.map(x=>`<span class="tag">${esc(x)}</span>`).join('') : '<span class="dim">無</span>';
+  const list = a => asArr(a).length ? asArr(a).map(x=>`<span class="tag">${esc(x)}</span>`).join('') : '<span class="dim">無</span>';
   el.innerHTML = `
     <div class="grouphead"><h3>${esc(b.brand_name||'未命名品牌')}</h3>
       <span>${esc(b.category||'')}</span>
@@ -1735,7 +1788,7 @@ function renderRivals(r){
   const el = $('outRivals');
   const arr = (r && r.rivals) || [];
   if(!arr.length){ el.innerHTML = '<p class="empty">尚未執行。</p>'; return; }
-  const li = (t,a) => (a&&a.length) ? `<li><b>${t}</b>：${a.map(esc).join('、')}</li>` : '';
+  const li = (t,a) => asArr(a).length ? `<li><b>${t}</b>：${asArr(a).map(esc).join('、')}</li>` : '';
   el.innerHTML = `<div class="pcards">${arr.map(x=>`
     <div class="pcard rv">
       <div class="who">${esc(x.code||'')}</div>
@@ -1799,7 +1852,7 @@ function renderVersus(v){
   const codes = [];
   axes.forEach(a=>(a.rivals||[]).forEach(r=>{ if(!codes.find(c=>c.code===r.code)) codes.push({code:r.code, name:r.name}); }));
   const cls = t => t==='領先' ? 'win' : (t==='落後' ? 'lose' : 'tie');
-  const list = (t,a) => (a&&a.length) ? `<div class="grouphead"><h3>${t}</h3></div><div class="tags">${a.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>` : '';
+  const list = (t,a) => asArr(a).length ? `<div class="grouphead"><h3>${t}</h3></div><div class="tags">${asArr(a).map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>` : '';
   el.innerHTML = `
     ${v.headline ? `<div class="stmt"><span class="lb">競爭態勢</span>${esc(v.headline)}</div>` : ''}
     <div class="tablewrap" style="margin-top:14px"><table class="grid">
@@ -1942,7 +1995,7 @@ ${JSON.stringify(S.diff, null, 1)}
 function renderMatrix(m){
   const el = $('outMatrix');
   if(!m){ el.innerHTML = '<p class="empty">尚未執行。</p>'; return; }
-  const li = (t,a) => (a&&a.length) ? `<li><b>${t}</b>：${a.map(esc).join('、')}</li>` : '';
+  const li = (t,a) => asArr(a).length ? `<li><b>${t}</b>：${asArr(a).map(esc).join('、')}</li>` : '';
   let h = m.ta_summary ? `<p style="color:var(--ink-2);font-size:13.5px">${esc(m.ta_summary)}</p>` : '';
   if((m.segments||[]).length){
     h += `<div class="pcards">${m.segments.map(x=>`
@@ -2554,6 +2607,115 @@ $('impFile').addEventListener('change', e=>{
 
 $('cancelReq').addEventListener('click', cancelAll);
 
+/* 範例：走跟匯入一樣的還原路徑，所以不用另外寫渲染 */
+$('loadSample').addEventListener('click', ()=>{
+  if(hasWork() && !confirm(t('載入範例會覆蓋目前畫面上的進度，確定要繼續嗎？'))) return;
+  restoreWork(JSON.parse(JSON.stringify(SAMPLE)));
+  saveWork();
+  log(0, '已載入範例結果，沒有發出任何 API 請求。想從自己的品牌開始，按「清空進度」。', 'hl');
+  $('s2').scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+/* =========================================================
+   接一個本機檔案當進度檔
+   檔案放在 Google Drive、iCloud 或 Dropbox 的同步資料夾裡，
+   就等於雲端備份，不需要 OAuth，也不需要任何後端。
+   handle 存進 IndexedDB，下次開啟還記得，但權限要重新確認。
+   ========================================================= */
+const FS_OK = typeof window.showSaveFilePicker === 'function';
+let fileHandle = null;
+
+function idb(){
+  return new Promise((res, rej)=>{
+    const q = indexedDB.open('bce', 1);
+    q.onupgradeneeded = ()=> q.result.createObjectStore('kv');
+    q.onsuccess = ()=> res(q.result);
+    q.onerror = ()=> rej(q.error);
+  });
+}
+async function idbSet(k, v){
+  try{
+    const db = await idb();
+    await new Promise((res, rej)=>{
+      const tx = db.transaction('kv','readwrite');
+      tx.objectStore('kv').put(v, k);
+      tx.oncomplete = res; tx.onerror = ()=>rej(tx.error);
+    });
+  }catch(e){}
+}
+async function idbGet(k){
+  try{
+    const db = await idb();
+    return await new Promise((res, rej)=>{
+      const tx = db.transaction('kv','readonly');
+      const r = tx.objectStore('kv').get(k);
+      r.onsuccess = ()=> res(r.result); r.onerror = ()=> rej(r.error);
+    });
+  }catch(e){ return null; }
+}
+
+function syncFileNote(){
+  const n = $('fileNote');
+  if(!n) return;
+  n.textContent = fileHandle ? (t('已接上檔案：') + fileHandle.name) : '';
+  $('linkFile').textContent = t(fileHandle ? '換一個檔案' : '存成檔案');
+}
+
+async function writeFile(){
+  if(!fileHandle) return;
+  try{
+    const w = await fileHandle.createWritable();
+    await w.write(JSON.stringify(exportPayload(), null, 2));
+    await w.close();
+  }catch(e){
+    log(0, '寫入檔案失敗：' + e.message, 'bad');
+  }
+}
+
+$('linkFile') && $('linkFile').addEventListener('click', async ()=>{
+  try{
+    fileHandle = await window.showSaveFilePicker({
+      suggestedName: '品牌內容策略.json',
+      types: [{description:'JSON', accept:{'application/json':['.json']}}]
+    });
+    await idbSet('fileHandle', fileHandle);
+    await writeFile();
+    syncFileNote();
+    log(0, '已接上檔案，之後每次進度更新都會自動寫入。放在雲端硬碟的同步資料夾就等於自動備份。', 'hl');
+  }catch(e){ /* 使用者取消選檔，不用處理 */ }
+});
+
+$('openFile') && $('openFile').addEventListener('click', async ()=>{
+  try{
+    const [h] = await window.showOpenFilePicker({
+      types: [{description:'JSON', accept:{'application/json':['.json']}}]
+    });
+    const d = JSON.parse(await (await h.getFile()).text());
+    if(hasWork() && !confirm(t('開啟檔案會覆蓋目前畫面上的進度，確定要繼續嗎？'))) return;
+    if(!d.comps && Array.isArray(d.competitors)) d.comps = d.competitors;
+    restoreWork(d);
+    fileHandle = h;
+    await idbSet('fileHandle', h);
+    saveWork();
+    syncFileNote();
+    log(0, '已從檔案載入進度：' + h.name, 'hl');
+  }catch(e){ /* 使用者取消 */ }
+});
+
+/* 重新開啟時把上次的檔案接回來，但權限必須已經是 granted，
+   requestPermission 需要使用者手勢，不能在載入時自動跳 */
+async function relinkFile(){
+  if(!FS_OK) return;
+  const h = await idbGet('fileHandle');
+  if(!h) return;
+  try{
+    if(await h.queryPermission({mode:'readwrite'}) === 'granted'){
+      fileHandle = h;
+      syncFileNote();
+    }
+  }catch(e){}
+}
+
 $('clearWork').addEventListener('click', ()=>{
   if(hasWork() && !confirm(t('這會清掉目前所有進度，且無法復原。建議先匯出 JSON。確定要清空嗎？'))) return;
   safeDel(SAVE_KEY);
@@ -2681,6 +2843,8 @@ renderCompRows();
 refreshModels();
 updateSel();
 loadWork();
+/* File System Access 只有 Chrome 系瀏覽器有，沒有就整組藏起來 */
+if(FS_OK){ $('fsBar').hidden = false; relinkFile(); }
 setLang(LANG, false);
 </script>
 </body>

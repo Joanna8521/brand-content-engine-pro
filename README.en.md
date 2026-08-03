@@ -32,6 +32,19 @@ Two independent controls:
 - **Interface language**: defaults to your browser locale, Chinese for Chinese locales and English for everything else. The 中 / EN switch at the top right overrides it, and once you pick, your choice wins and is remembered in this browser.
 - **Output language**: the dropdown in step 00 decides what language the model writes in, also defaulting to your browser locale. The two are fully independent, so you can read the interface in English while generating Traditional Chinese copy, or the other way round.
 
+## See it work before you commit
+
+No API key yet? In "00 Model & API Key" press **See a worked example**. It loads a completed run on a fictional brand, all ten steps filled in, **without sending a single request**. Press "Clear progress" when you want to start from your own brand.
+
+## Your work is not lost
+
+- **Autosave**: every completed step is written to the browser; close the tab and reopen and it restores, showing when it was saved
+- **Guard on exit**: closing with unsaved changes asks for confirmation
+- **Export / import JSON**: back up, move between machines, hand over to a colleague, then carry on from where it stopped
+- **Save to a file** (Chrome, Edge): pick a local file and every update is written to it automatically. **Put that file in a Google Drive, iCloud or Dropbox synced folder and you have cloud backup**, with no account to authorise and no server involved
+
+Your API key is **never** written into the work save; it has its own storage and its own toggle.
+
 ## Privacy
 
 Your API key lives only in your own browser `localStorage` and goes **straight to the model provider with no intermediary server**, because this project has no server at all.

@@ -87,6 +87,9 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:16p
 .btn.go:hover{background:#e8ff7a}
 .btn.ghost{background:transparent;border-color:var(--line);color:var(--ink)}
 .btn.ghost:hover{background:var(--panel);border-color:var(--acid-dim)}
+.btn.demo{background:transparent;border-color:var(--acid-dim);color:var(--acid)}
+.btn.demo:hover{background:rgba(220,253,80,.09);border-color:var(--acid)}
+.demohint{font-size:13px;color:var(--ink-2);margin:-8px 0 26px}
 .trust{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-3);padding-bottom:52px}
 .trust span::before{content:'✓ ';color:var(--acid)}
 
@@ -181,9 +184,11 @@ footer .meta{font-size:12.5px;color:var(--ink-3);line-height:1.9;text-align:righ
   <p class="sub">整條流程十個步驟，每一段的結果都能當場編輯再往下跑，不會被模型的第一次回答綁死。</p>
   <div class="cta">
     <a class="btn go" href="brand-content-engine-pro.html">開始使用</a>
+    <a class="btn demo" href="brand-content-engine-pro.html?demo=1">看範例結果</a>
     <a class="btn ghost" href="brand-content-engine-pro.html" download>下載單檔 HTML</a>
     <a class="btn ghost" href="https://github.com/Joanna8521/brand-content-engine-pro">GitHub 原始碼</a>
   </div>
+  <p class="demohint">不用金鑰、不用註冊，直接看一份跑完的完整成果。</p>
   <div class="trust">
     <span>免安裝，開瀏覽器就能跑</span>
     <span>沒有後端，金鑰只留在你的瀏覽器</span>
@@ -273,6 +278,7 @@ footer .meta{font-size:12.5px;color:var(--ink-3);line-height:1.9;text-align:righ
   <p class="lead">不需要註冊，不需要安裝。先申請一個免費的 Groq 金鑰，一分鐘之內可以跑第一次。</p>
   <div class="cta">
     <a class="btn go" href="brand-content-engine-pro.html">開始使用</a>
+    <a class="btn demo" href="brand-content-engine-pro.html?demo=1">看範例結果</a>
     <a class="btn ghost" href="https://github.com/Joanna8521/brand-content-engine-pro#零成本起步申請-groq-金鑰">怎麼拿免費金鑰</a>
   </div>
 </section>
@@ -304,6 +310,8 @@ const I18N_EN = {
   '品牌內容引擎是一個單檔 HTML 工具。爬自己的網站、逐家拆解競品、在同一組構面上雙打比較，一路推到可以直接發布的文案。':'Brand Content Engine is a single HTML file. It crawls your own site, breaks down each rival, compares you against them on the same set of axes, and carries it all the way through to publish-ready copy.',
   '整條流程十個步驟，每一段的結果都能當場編輯再往下跑，不會被模型的第一次回答綁死。':'Ten steps in all. Every result can be edited on the spot before it feeds the next step, so you are never stuck with the model’s first answer.',
   '開始使用':'Launch the tool',
+  '看範例結果':'See a worked example',
+  '不用金鑰、不用註冊，直接看一份跑完的完整成果。':'No key, no signup. Look at a full worked result right now.',
   '下載單檔 HTML':'Download the single file',
   'GitHub 原始碼':'Source on GitHub',
   '免安裝，開瀏覽器就能跑':'No install, runs in a browser',

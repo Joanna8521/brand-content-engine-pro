@@ -2608,13 +2608,14 @@ $('impFile').addEventListener('change', e=>{
 $('cancelReq').addEventListener('click', cancelAll);
 
 /* 範例：走跟匯入一樣的還原路徑，所以不用另外寫渲染 */
-$('loadSample').addEventListener('click', ()=>{
+function loadSample(){
   if(hasWork() && !confirm(t('載入範例會覆蓋目前畫面上的進度，確定要繼續嗎？'))) return;
   restoreWork(JSON.parse(JSON.stringify(SAMPLE)));
   saveWork();
   log(0, '已載入範例結果，沒有發出任何 API 請求。想從自己的品牌開始，按「清空進度」。', 'hl');
   $('s2').scrollIntoView({behavior:'smooth', block:'start'});
-});
+}
+$('loadSample').addEventListener('click', loadSample);
 
 /* =========================================================
    接一個本機檔案當進度檔
@@ -2846,6 +2847,8 @@ loadWork();
 /* File System Access 只有 Chrome 系瀏覽器有，沒有就整組藏起來 */
 if(FS_OK){ $('fsBar').hidden = false; relinkFile(); }
 setLang(LANG, false);
+/* 從介紹頁的「看範例結果」連過來時直接載入，不用再按一次 */
+if(/[?&]demo=1(&|$)/.test(location.search)) loadSample();
 </script>
 </body>
 </html>

@@ -1,4 +1,12 @@
-# 品牌內容引擎 Brand Content Engine
+<p align="center">
+  <img src="assets/logo.png" alt="酒Ann" width="140">
+</p>
+
+<h1 align="center">品牌內容引擎 Brand Content Engine</h1>
+
+<p align="center">
+  by <b>酒Ann</b> — AI Application &amp; Developer / Online Educator &amp; Customized Creator
+</p>
 
 一個**單檔 HTML** 的品牌內容生產工具。下載一個檔案、用瀏覽器打開，就能跑完整條流程：爬自己的網站 → 解析品牌定位 → 分析競品 → 產出內容。
 
@@ -85,4 +93,10 @@ newprovider: {
 
 判斷原則：**教學可以收費，軟體本身不可以。**
 
-需要落在禁止範圍內的使用方式，歡迎洽談商用授權，聯絡方式寫在 [ADDITIONAL-GRANT.md](ADDITIONAL-GRANT.md)。
+需要落在禁止範圍內的使用方式，歡迎洽談商用授權。
+
+## 聯絡
+
+**酒Ann** — cpw688@gmail.com
+
+AI 應用開發 / 線上教學 / 客製化開發

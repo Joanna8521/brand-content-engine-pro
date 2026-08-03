@@ -1264,6 +1264,42 @@ function syncCancelBtn(){
 }
 const sleep = ms => new Promise(r=>setTimeout(r, ms));
 
+/* 從 429 回應裡挖出真正有用的配額資訊。
+   Gemini 走 google.rpc.QuotaFailure 與 RetryInfo，quotaId 會標明
+   PerMinute 還是 PerDay，quotaValue 是上限，為 0 代表這個專案根本
+   沒有免費配額。純看 error.message 只會拿到一句無差別的通用文字。 */
+function quotaInfo(d){
+  const out = { summary:'', perPeriod:'', retryDelay:NaN, zero:false };
+  const msg = String(d?.error?.message || d?.message || '');
+  const det = d?.error?.details;
+  const parts = [];
+  if(Array.isArray(det)){
+    det.forEach(x=>{
+      const type = String(x['@type'] || '');
+      if(/QuotaFailure/i.test(type) && Array.isArray(x.violations)){
+        x.violations.forEach(v=>{
+          const id = String(v.quotaId || v.quotaMetric || '');
+          if(/PerDay/i.test(id)) out.perPeriod = '每日';
+          else if(/PerMonth/i.test(id)) out.perPeriod = out.perPeriod || '每月';
+          if(String(v.quotaValue) === '0') out.zero = true;
+          parts.push(id + (v.quotaValue != null ? '（上限 ' + v.quotaValue + '）' : ''));
+        });
+      }
+      if(/RetryInfo/i.test(type) && x.retryDelay){
+        const s = parseFloat(String(x.retryDelay));
+        if(Number.isFinite(s)) out.retryDelay = s;
+      }
+    });
+  }
+  if(!out.perPeriod){
+    if(/per\s*day|daily|\bRPD\b/i.test(msg)) out.perPeriod = '每日';
+    else if(/per\s*month/i.test(msg)) out.perPeriod = '每月';
+  }
+  if(out.zero) out.perPeriod = out.perPeriod || '免費層';
+  out.summary = parts.length ? parts.join('、') : msg.slice(0,220);
+  return out;
+}
+
 async function postJSON(url, headers, body, logN){
   for(let attempt = 0; ; attempt++){
     const ctrl = newAbort(LLM_TIMEOUT_MS);
@@ -1283,14 +1319,16 @@ async function postJSON(url, headers, body, logN){
     let d;
     try{ d = JSON.parse(raw); }catch(e){ d = null; }
 
-    /* 速率限制：優先聽供應商給的 Retry-After，否則指數退避 */
+    /* 速率限制。Gemini 把真正有用的資訊放在 error.details 的 QuotaFailure
+       與 RetryInfo 裡，只讀 error.message 會看不出是每分鐘還是每日。 */
     if(r.status === 429 || r.status === 503){
-      const why = String(d?.error?.message || d?.message || '').slice(0,200);
-      /* 每日或每月額度用完的話，等幾秒再試沒有意義，直接停 */
-      const perDay = /per\s*day|daily|\bRPD\b|per\s*month|quota.*exceeded.*day/i.test(why);
-      if(attempt < MAX_RETRY && !perDay){
+      const q = quotaInfo(d);
+      const why = q.summary || String(d?.error?.message || d?.message || '').slice(0,220);
+      if(attempt < MAX_RETRY && !q.perPeriod){
         const ra = parseFloat(r.headers.get('retry-after'));
-        const wait = Number.isFinite(ra) ? Math.min(Math.max(ra,1), 60) : Math.min(Math.pow(2, attempt) * 3, 30);
+        const wait = Number.isFinite(q.retryDelay) ? Math.min(q.retryDelay, 60)
+                   : Number.isFinite(ra) ? Math.min(Math.max(ra,1), 60)
+                   : Math.min(Math.pow(2, attempt) * 3, 30);
         if(logN != null){
           log(logN, '撞到速率限制，' + Math.round(wait) + ' 秒後自動重試（第 ' + (attempt+1) + ' 次，最多 ' + MAX_RETRY + ' 次）。'
             + (why ? '供應商說明：' + why : ''), 'warn');
@@ -1298,9 +1336,10 @@ async function postJSON(url, headers, body, logN){
         await sleep(wait * 1000);
         continue;
       }
-      if(perDay){
-        throw new Error('這個金鑰的額度已經用完（不是每分鐘的暫時限制，等一下也不會恢復）。供應商說明：' + why
-          + '　請換一把金鑰、換一家供應商，或等額度重置。');
+      if(q.perPeriod){
+        throw new Error('這個金鑰的' + q.perPeriod + '額度已經用完，不是暫時性的限制，等一下也不會恢復。'
+          + (q.summary ? '供應商說明：' + q.summary : '')
+          + '　請換一把金鑰、換一家供應商，或等額度重置。免費層額度為零通常代表該專案沒有開通免費配額，或所在地區不提供免費層。');
       }
     }
 

@@ -18,7 +18,7 @@
 
 ## 快速開始
 
-1. 下載 `brand-content-engine pro.html`
+1. 下載 `brand-content-engine-pro.html`
 2. 用瀏覽器打開（雙擊即可）
 3. 在「00 模型與金鑰」選一家供應商、貼上 API 金鑰
 4. 按「測試連線」確認通了，然後往下一步一步跑

@@ -134,6 +134,7 @@ footer.foot .lic .no{color:var(--bad)}
 .card > h2 .idx{font-family:var(--mono);font-size:11px;color:var(--acid);letter-spacing:.08em}
 .card.rival > h2 .idx{color:var(--rival)}
 .card .desc{color:var(--ink-2);font-size:13px;margin:0 0 16px}
+.card .desc.warnnote{color:var(--warn)}
 
 label.f{display:block;font-size:12px;color:var(--ink-2);margin:0 0 6px;letter-spacing:.02em}
 input[type=text],input[type=password],input[type=url],select,textarea{
@@ -828,6 +829,7 @@ const I18N_EN = {
   '中國方案。':'China-based provider.',
   '速度極快、有免費額度，適合先試跑。金鑰在 console.groq.com 申請。':'Very fast with a free tier, good for a first run. Get a key at console.groq.com.',
   '零 API 費用，跑在自己電腦上，不需要金鑰。啟動前請先在終端機執行 OLLAMA_ORIGINS=* ollama serve，否則瀏覽器會被 CORS 擋下。':'No API cost, runs on your own machine, no key required. Start it with OLLAMA_ORIGINS=* ollama serve first, otherwise the browser will be blocked by CORS.',
+  '這個線上版是 https，瀏覽器會擋掉連向本機的請求。要用本機模型請把 HTML 下載到電腦上開。':'This hosted version runs on https, so the browser blocks requests to your local machine. To use a local model, download the HTML and open it from your computer.',
 
   /* 01 抓取 */
   '先試直連，被 CORS 擋就自動換讀取代理，全失敗時可以直接貼上文字繼續。':'Tries a direct fetch first and falls back to a read proxy if CORS blocks it. If everything fails you can paste the text manually.',
@@ -1101,7 +1103,10 @@ function refreshModels(){
   dl.innerHTML = P.models.map(m=>`<option value="${m}">`).join('');
   const saved = safeGet('bce.model.'+p);
   $('model').value = saved || P.models[0];
-  $('provNote').textContent = P.note || '';
+  /* https 頁面連不到 http://localhost，Ollama 在線上版一定會被 mixed content 擋掉 */
+  const blocked = location.protocol === 'https:' && /^http:\/\//i.test(P.url);
+  $('provNote').textContent = t(P.note || '') + (blocked ? ' ' + t('這個線上版是 https，瀏覽器會擋掉連向本機的請求。要用本機模型請把 HTML 下載到電腦上開。') : '');
+  $('provNote').classList.toggle('warnnote', blocked);
   const needsKey = P.needsKey !== false;
   $('key').placeholder = needsKey ? '貼上金鑰' : '這家不需要金鑰，留空即可';
   $('key').disabled = !needsKey;

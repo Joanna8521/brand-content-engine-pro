@@ -18,7 +18,7 @@ No backend, no install, no account, no dependencies.
 
 ## Quick start
 
-1. Download `brand-content-engine pro.html`
+1. Download `brand-content-engine-pro.html`
 2. Open it in a browser (double click is enough)
 3. Under "00 Model & API Key" pick a provider and paste an API key
 4. Hit "Test connection", then work down the steps

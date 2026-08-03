@@ -156,6 +156,13 @@ footer.foot .lic .no{color:var(--bad)}
 .card.rival > h2 .idx{color:var(--rival)}
 .card .desc{color:var(--ink-2);font-size:13px;margin:0 0 16px}
 .card .desc.warnnote{color:var(--warn)}
+/* 供應商本身不開放瀏覽器直連的常駐提示，選之前就要看得到 */
+.card .alert{
+  color:var(--warn);font-size:13px;line-height:1.7;margin:0 0 14px;
+  background:rgba(255,180,84,.07);border:1px solid rgba(255,180,84,.28);
+  border-radius:8px;padding:11px 14px;
+}
+.card .alert::before{content:'⚠ ';font-weight:700}
 
 label.f{display:block;font-size:12px;color:var(--ink-2);margin:0 0 6px;letter-spacing:.02em}
 input[type=text],input[type=password],input[type=url],select,textarea{
@@ -460,7 +467,7 @@ details.raw textarea{margin-top:9px;min-height:190px}
         <label class="f" for="prov">供應商</label>
         <select id="prov">
           <option value="anthropic">Anthropic Claude</option>
-          <option value="openai">OpenAI</option>
+          <option value="openai">OpenAI（不可用）</option>
           <option value="gemini">Google Gemini</option>
           <option value="deepseek">DeepSeek</option>
           <option value="moonshot">Kimi（Moonshot）</option>
@@ -480,6 +487,7 @@ details.raw textarea{margin-top:9px;min-height:190px}
         <input type="password" id="key" placeholder="貼上金鑰" autocomplete="off">
       </div>
     </div>
+    <p class="alert" id="openaiAlert">OpenAI 不接受從瀏覽器直接呼叫，帶授權標頭的預檢請求會被擋下。這是他們的政策，不是你的設定問題，換一家供應商就好。</p>
     <p class="desc" id="provNote"></p>
     <div class="bar">
       <button class="btn sm" id="testKey">測試連線</button>
@@ -763,7 +771,7 @@ const PROVIDERS = {
     label:'OpenAI', kind:'openai', blocked:true,
     url:'https://api.openai.com/v1/chat/completions',
     models:['gpt-4o-mini','gpt-4o','gpt-4.1-mini'],
-    note:'OpenAI 不接受從瀏覽器直接呼叫，帶授權標頭的預檢請求會被擋下。這是他們的政策，不是你的設定問題，換一家供應商就好。'
+    note:'這一家無法使用，原因見上方橘色說明。'
   },
   gemini: {
     label:'Google Gemini', kind:'gemini',
@@ -855,6 +863,9 @@ const I18N_EN = {
   '在這台電腦記住金鑰':'Remember key on this computer',
   '已存在這台瀏覽器。':'Saved in this browser.',
   '這個環境不能保存，金鑰只留在本次分頁。':'This environment cannot store it, so the key stays in this tab only.',
+  'OpenAI（不可用）':'OpenAI (unavailable)',
+  'OpenAI 不接受從瀏覽器直接呼叫，帶授權標頭的預檢請求會被擋下。這是他們的政策，不是你的設定問題，換一家供應商就好。':'OpenAI does not accept direct calls from a browser: the preflight for the authorization header is refused. That is their policy, not a problem with your setup. Just pick another provider.',
+  '這一家無法使用，原因見上方橘色說明。':'This provider cannot be used. See the note above for why.',
   'Kimi（Moonshot）':'Kimi (Moonshot)',
   '智譜 GLM':'Zhipu GLM',
   'Ollama（本機模型）':'Ollama (local model)',
@@ -936,6 +947,7 @@ const I18N_EN = {
   '已取消。':'Cancelled.',
   '請求超過時間上限，已自動中止。可以再試一次，或換一家供應商。':'The request exceeded the time limit and was aborted. Try again, or switch provider.',
   '超過時間上限':'timed out',
+  '供應商說明：':'Provider says: ',
   '這個檔案不是有效的 JSON。':'That file is not valid JSON.',
   '這個 JSON 看起來不是本工具匯出的進度檔。':'That JSON does not look like a progress file exported from this tool.',
   '匯入會覆蓋目前畫面上的進度，確定要繼續嗎？':'Importing will overwrite the progress currently on screen. Continue?',
@@ -1272,14 +1284,24 @@ async function postJSON(url, headers, body, logN){
     try{ d = JSON.parse(raw); }catch(e){ d = null; }
 
     /* 速率限制：優先聽供應商給的 Retry-After，否則指數退避 */
-    if((r.status === 429 || r.status === 503) && attempt < MAX_RETRY){
-      const ra = parseFloat(r.headers.get('retry-after'));
-      const wait = Number.isFinite(ra) ? Math.min(Math.max(ra,1), 60) : Math.min(Math.pow(2, attempt) * 3, 30);
-      if(logN != null){
-        log(logN, '撞到速率限制，' + Math.round(wait) + ' 秒後自動重試（第 ' + (attempt+1) + ' 次，最多 ' + MAX_RETRY + ' 次）。', 'warn');
+    if(r.status === 429 || r.status === 503){
+      const why = String(d?.error?.message || d?.message || '').slice(0,200);
+      /* 每日或每月額度用完的話，等幾秒再試沒有意義，直接停 */
+      const perDay = /per\s*day|daily|\bRPD\b|per\s*month|quota.*exceeded.*day/i.test(why);
+      if(attempt < MAX_RETRY && !perDay){
+        const ra = parseFloat(r.headers.get('retry-after'));
+        const wait = Number.isFinite(ra) ? Math.min(Math.max(ra,1), 60) : Math.min(Math.pow(2, attempt) * 3, 30);
+        if(logN != null){
+          log(logN, '撞到速率限制，' + Math.round(wait) + ' 秒後自動重試（第 ' + (attempt+1) + ' 次，最多 ' + MAX_RETRY + ' 次）。'
+            + (why ? '供應商說明：' + why : ''), 'warn');
+        }
+        await sleep(wait * 1000);
+        continue;
       }
-      await sleep(wait * 1000);
-      continue;
+      if(perDay){
+        throw new Error('這個金鑰的額度已經用完（不是每分鐘的暫時限制，等一下也不會恢復）。供應商說明：' + why
+          + '　請換一把金鑰、換一家供應商，或等額度重置。');
+      }
     }
 
     if(!r.ok){

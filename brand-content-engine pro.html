@@ -1,0 +1,1902 @@
+<!DOCTYPE html>
+<!--
+  品牌內容引擎 Brand Content Engine
+  Copyright 2026 [請填入你的姓名或品牌名]
+
+  授權：Functional Source License 1.1, MIT Future License（FSL-1.1-MIT）
+        另有 ADDITIONAL-GRANT.md 放寬教學用途，兩份一併適用。
+
+  可以：自己用、公司內部用、修改、散布修改版、用於收費課程與企業內訓
+  不行：把本軟體（含改名換皮版本）當產品販售、架成 SaaS 收費、做功能實質相同的競品
+  兩年後：每個版本於釋出滿兩年自動轉為 MIT 授權
+
+  完整條款與商用授權聯絡方式請見專案的 LICENSE 與 ADDITIONAL-GRANT.md。
+  依授權條款，散布本檔案時不得移除本段標示。
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>品牌內容引擎</title>
+<style>
+:root{
+  --bg:#131313;
+  --panel:#1c1c1c;
+  --panel-2:#232323;
+  --line:#2f2f2f;
+  --ink:#ededed;
+  --ink-2:#9d9d9d;
+  --ink-3:#6b6b6b;
+  --acid:#dcfd50;
+  --acid-dim:#8fa832;
+  --warn:#ffb454;
+  --ok:#7be495;
+  --bad:#ff7a7a;
+  --rival:#7ab6ff;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:"Inter","Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+a{color:var(--acid)}
+
+/* ---------- 版面 ---------- */
+.wrap{max-width:1240px;margin:0 auto;padding:28px 22px 140px}
+header.top{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:20px;flex-wrap:wrap;padding-bottom:20px;border-bottom:1px solid var(--line);
+}
+.brandmark{display:flex;align-items:baseline;gap:12px}
+.brandmark h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em}
+.brandmark .sub{color:var(--ink-2);font-size:13px}
+.pipe-hint{
+  font-family:var(--mono);font-size:11.5px;color:var(--ink-3);
+  letter-spacing:.06em;text-transform:uppercase;
+}
+
+.layout{display:grid;grid-template-columns:212px 1fr;gap:26px;margin-top:26px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+
+/* ---------- 階段軌 ---------- */
+.rail{position:sticky;top:22px;align-self:start}
+@media(max-width:900px){.rail{position:static}}
+.rail ol{list-style:none;margin:0;padding:0}
+.rail li{
+  display:flex;gap:11px;padding:8px 10px;border-radius:7px;cursor:pointer;
+  border:1px solid transparent;
+}
+.rail li:hover{background:var(--panel)}
+.rail li.active{background:var(--panel);border-color:var(--line)}
+.rail .num{
+  font-family:var(--mono);font-size:11px;color:var(--ink-3);padding-top:3px;min-width:18px;
+}
+.rail .nm{font-size:13.5px;line-height:1.35}
+.rail .st{font-size:11px;font-family:var(--mono);color:var(--ink-3);letter-spacing:.04em}
+.rail li[data-state="done"] .st{color:var(--ok)}
+.rail li[data-state="run"] .st{color:var(--acid)}
+.rail li[data-state="edit"] .st{color:var(--warn)}
+.rail li[data-state="fail"] .st{color:var(--bad)}
+.rail li[data-state="done"] .num,.rail li[data-state="run"] .num{color:var(--acid)}
+.rail li.rivalstage[data-state="done"] .num{color:var(--rival)}
+
+/* ---------- 卡片 ---------- */
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:20px;margin-bottom:18px;
+}
+.card.rival{border-left:3px solid var(--rival)}
+.card > h2{
+  margin:0 0 4px;font-size:16px;font-weight:700;letter-spacing:-.01em;
+  display:flex;align-items:center;gap:10px;
+}
+.card > h2 .idx{font-family:var(--mono);font-size:11px;color:var(--acid);letter-spacing:.08em}
+.card.rival > h2 .idx{color:var(--rival)}
+.card .desc{color:var(--ink-2);font-size:13px;margin:0 0 16px}
+
+label.f{display:block;font-size:12px;color:var(--ink-2);margin:0 0 6px;letter-spacing:.02em}
+input[type=text],input[type=password],input[type=url],select,textarea{
+  width:100%;background:var(--bg);border:1px solid var(--line);border-radius:7px;
+  padding:9px 11px;outline:none;
+}
+input:focus,select:focus,textarea:focus,button:focus-visible{
+  border-color:var(--acid-dim);box-shadow:0 0 0 2px rgba(220,253,80,.12)
+}
+textarea{resize:vertical;font-family:var(--mono);font-size:12.5px;line-height:1.65}
+.row{display:grid;gap:12px}
+.row.c2{grid-template-columns:1fr 1fr}
+.row.c3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:700px){.row.c2,.row.c3{grid-template-columns:1fr}}
+
+.btn{
+  background:var(--acid);color:#12140a;border:none;border-radius:7px;
+  padding:10px 18px;font-weight:700;cursor:pointer;letter-spacing:.01em;
+}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.4;cursor:not-allowed;filter:none}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:500}
+.btn.ghost:hover{border-color:var(--ink-3);filter:none}
+.btn.sm{padding:6px 12px;font-size:12.5px;font-weight:600}
+.btn.tiny{padding:3px 9px;font-size:11.5px;font-weight:600}
+.btn.blue{background:var(--rival);color:#0a1420}
+.bar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:16px}
+
+.chk{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-2)}
+.chk input{width:auto;accent-color:var(--acid)}
+
+.log{
+  font-family:var(--mono);font-size:11.5px;color:var(--ink-3);
+  background:var(--bg);border:1px solid var(--line);border-radius:7px;
+  padding:9px 11px;margin-top:12px;max-height:170px;overflow:auto;white-space:pre-wrap;
+}
+.log .ok{color:var(--ok)}
+.log .bad{color:var(--bad)}
+.log .hl{color:var(--acid)}
+
+.pill{
+  display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;
+  padding:2px 7px;border-radius:4px;border:1px solid var(--line);color:var(--ink-2);
+  text-transform:uppercase;
+}
+.pill.acid{border-color:var(--acid-dim);color:var(--acid)}
+.pill.blue{border-color:#3f6d9e;color:var(--rival)}
+.pill.warn{border-color:#8a6420;color:var(--warn)}
+
+/* ---------- 競品列 ---------- */
+.comprow{
+  background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
+  padding:12px 13px;margin-bottom:10px;
+}
+.comprow .head{display:flex;gap:10px;align-items:center}
+.comprow .head input{flex:1}
+.comprow .meta{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+
+/* ---------- 結果呈現 ---------- */
+.kv{display:grid;grid-template-columns:118px 1fr;gap:6px 14px;font-size:13.5px;margin-top:4px}
+.kv dt{color:var(--ink-2)}
+.kv dd{margin:0}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.tag{background:var(--panel-2);border:1px solid var(--line);border-radius:5px;padding:2px 9px;font-size:12.5px}
+
+.pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.pcard{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:15px}
+.pcard.rv{border-top:2px solid var(--rival)}
+.pcard h3{margin:0 0 3px;font-size:15px}
+.pcard .who{color:var(--acid);font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.pcard.rv .who{color:var(--rival)}
+.pcard ul{margin:8px 0 0;padding-left:17px;font-size:13px;color:var(--ink-2)}
+.pcard ul li{margin-bottom:3px}
+.pcard ul li b{color:var(--ink);font-weight:600}
+
+table.grid{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+table.grid th{
+  background:var(--acid);color:#12140a;text-align:left;padding:11px 13px;
+  font-weight:700;font-size:13px;
+}
+table.grid.rv th{background:var(--rival);color:#0a1420}
+table.grid td{padding:11px 13px;border-top:1px solid var(--line);vertical-align:top}
+table.grid tr:nth-child(even) td{background:var(--panel-2)}
+table.grid td.day{white-space:nowrap;color:var(--ink-2)}
+table.grid td b{font-weight:600}
+table.grid td.pick{width:38px;text-align:center;padding:11px 6px}
+table.grid td.pick input,table.grid th.pick input{width:auto;accent-color:var(--acid);cursor:pointer}
+table.grid th.pick{width:38px;text-align:center;padding:11px 6px}
+tr.picked td{background:rgba(220,253,80,.07) !important}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:9px}
+
+.vd{font-family:var(--mono);font-size:11px;letter-spacing:.05em}
+.vd.win{color:var(--ok)}
+.vd.tie{color:var(--warn)}
+.vd.lose{color:var(--bad)}
+
+.grouphead{
+  display:flex;align-items:baseline;gap:10px;margin:22px 0 8px;
+  padding-bottom:6px;border-bottom:1px solid var(--line);flex-wrap:wrap;
+}
+.grouphead h3{margin:0;font-size:14.5px}
+.grouphead span{color:var(--ink-2);font-size:12.5px}
+
+.stmt{
+  background:var(--panel-2);border:1px solid var(--acid-dim);border-radius:9px;
+  padding:15px 17px;margin-top:6px;font-size:15px;line-height:1.75;
+}
+.stmt .lb{font-family:var(--mono);font-size:10.5px;color:var(--acid);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:5px}
+
+/* ---------- 勾選與文案 ---------- */
+.selbar{
+  position:sticky;bottom:0;z-index:5;margin-top:16px;
+  background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
+  padding:11px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+}
+.selbar .cnt{font-family:var(--mono);font-size:12px;color:var(--acid)}
+
+.copycard{
+  background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
+  padding:16px 17px;margin-bottom:13px;
+}
+.copycard .ch{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:9px}
+.copycard h3{margin:0;font-size:15px}
+.copycard .hd{font-size:15.5px;font-weight:700;line-height:1.5;margin:0 0 8px}
+.copycard .bd{white-space:pre-wrap;font-size:14px;line-height:1.85;color:var(--ink)}
+.copycard .ft{margin-top:11px;padding-top:10px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-2)}
+.copycard .ht{color:var(--acid);font-size:12.5px;margin-top:7px;word-break:break-all}
+
+.empty{color:var(--ink-3);font-size:13px;padding:14px 0}
+.err{color:var(--bad);font-size:13px;margin-top:10px;white-space:pre-wrap}
+details.raw{margin-top:14px}
+details.raw summary{cursor:pointer;color:var(--ink-2);font-size:12.5px;user-select:none}
+details.raw textarea{margin-top:9px;min-height:190px}
+.dim{color:var(--ink-3);font-size:12px}
+
+.spin{display:inline-block;width:11px;height:11px;border:2px solid var(--acid);
+  border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+
+@media print{
+  body{background:#fff;color:#000}
+  .rail,.bar,.log,.selbar,header.top .pipe-hint,details.raw{display:none}
+  .card{border-color:#ccc;background:#fff;break-inside:avoid}
+  .copycard,.pcard,.stmt{background:#fff;border-color:#ccc;break-inside:avoid}
+  table.grid th{background:#e9f59b;color:#000}
+  table.grid.rv th{background:#cfe4ff;color:#000}
+  table.grid tr:nth-child(even) td{background:#f6f6f6}
+  td.pick,th.pick{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="brandmark">
+    <h1>品牌內容引擎</h1>
+    <span class="sub">我方對競品雙打拆解，一路跑到可直接發的文案</span>
+  </div>
+  <div class="pipe-hint">ME → RIVALS → VERSUS → WEDGE → MATRIX → POSTS → COPY</div>
+</header>
+
+<div class="layout">
+
+  <nav class="rail">
+    <ol id="rail">
+      <li data-go="s0"><span class="num">00</span><span><span class="nm">模型與金鑰</span><br><span class="st" id="st0">未設定</span></span></li>
+      <li data-go="s1"><span class="num">01</span><span><span class="nm">爬我的網站</span><br><span class="st" id="st1">待執行</span></span></li>
+      <li data-go="s2"><span class="num">02</span><span><span class="nm">解析我的網站</span><br><span class="st" id="st2">待執行</span></span></li>
+      <li data-go="s3" class="rivalstage"><span class="num">03</span><span><span class="nm">爬競品網站</span><br><span class="st" id="st3">待執行</span></span></li>
+      <li data-go="s4" class="rivalstage"><span class="num">04</span><span><span class="nm">解析競品網站</span><br><span class="st" id="st4">待執行</span></span></li>
+      <li data-go="s5"><span class="num">05</span><span><span class="nm">雙打比較</span><br><span class="st" id="st5">待執行</span></span></li>
+      <li data-go="s6"><span class="num">06</span><span><span class="nm">差異化策略</span><br><span class="st" id="st6">待執行</span></span></li>
+      <li data-go="s7"><span class="num">07</span><span><span class="nm">行銷矩陣規劃</span><br><span class="st" id="st7">待執行</span></span></li>
+      <li data-go="s8"><span class="num">08</span><span><span class="nm">貼文策略</span><br><span class="st" id="st8">待執行</span></span></li>
+      <li data-go="s9"><span class="num">09</span><span><span class="nm">品牌文案</span><br><span class="st" id="st9">待執行</span></span></li>
+    </ol>
+    <div class="bar" style="margin-top:18px">
+      <button class="btn sm" id="runAll">一鍵跑到貼文策略</button>
+    </div>
+    <div class="bar">
+      <button class="btn ghost sm" id="expMd">匯出 Markdown</button>
+      <button class="btn ghost sm" id="expJson">匯出 JSON</button>
+      <button class="btn ghost sm" id="doPrint">列印</button>
+    </div>
+  </nav>
+
+  <main>
+
+  <!-- 00 設定 -->
+  <section class="card" id="s0">
+    <h2><span class="idx">00</span>模型與金鑰</h2>
+    <p class="desc">金鑰只留在這個瀏覽器，直接送到模型供應商，不經過任何中介伺服器。</p>
+    <div class="row c3">
+      <div>
+        <label class="f" for="prov">供應商</label>
+        <select id="prov">
+          <option value="anthropic">Anthropic Claude</option>
+          <option value="openai">OpenAI</option>
+          <option value="gemini">Google Gemini</option>
+          <option value="deepseek">DeepSeek</option>
+          <option value="moonshot">Kimi（Moonshot）</option>
+          <option value="zhipu">智譜 GLM</option>
+          <option value="minimax">MiniMax</option>
+          <option value="groq">Groq</option>
+          <option value="ollama">Ollama（本機模型）</option>
+        </select>
+      </div>
+      <div>
+        <label class="f" for="model">模型名稱</label>
+        <input type="text" id="model" list="modellist" placeholder="模型 ID">
+        <datalist id="modellist"></datalist>
+      </div>
+      <div>
+        <label class="f" for="key">API 金鑰</label>
+        <input type="password" id="key" placeholder="貼上金鑰" autocomplete="off">
+      </div>
+    </div>
+    <p class="desc" id="provNote"></p>
+    <div class="bar">
+      <button class="btn sm" id="testKey">測試連線</button>
+      <label class="chk"><input type="checkbox" id="remember"> 在這台電腦記住金鑰</label>
+      <span class="dim" id="keyNote"></span>
+    </div>
+    <div class="log" id="log0" hidden></div>
+  </section>
+
+  <!-- 01 爬我的網站 -->
+  <section class="card" id="s1">
+    <h2><span class="idx">01</span>爬我的網站</h2>
+    <p class="desc">先試直連，被 CORS 擋就自動換讀取代理，全失敗時可以直接貼上文字繼續。</p>
+    <div class="row c2">
+      <div>
+        <label class="f" for="url">我的品牌網址</label>
+        <input type="url" id="url" placeholder="https://example.com">
+      </div>
+      <div>
+        <label class="f" for="extra">補充脈絡（選填）</label>
+        <input type="text" id="extra" placeholder="例：主打 B2B 企業內訓，客單價偏高">
+      </div>
+    </div>
+    <div class="bar">
+      <button class="btn" id="runFetch">抓取</button>
+      <button class="btn ghost sm" id="togglePaste">改成手動貼上</button>
+      <span class="pill" id="charCount" hidden></span>
+    </div>
+    <div class="log" id="log1" hidden></div>
+    <div id="pasteBox" hidden style="margin-top:14px">
+      <label class="f" for="pageText">網頁文字</label>
+      <textarea id="pageText" rows="9" placeholder="把首頁、關於我們、產品頁的文字貼進來"></textarea>
+    </div>
+  </section>
+
+  <!-- 02 解析我的網站 -->
+  <section class="card" id="s2">
+    <h2><span class="idx">02</span>解析我的網站</h2>
+    <p class="desc">從網站語料推定位、語氣、風格、語彙庫。推論的部分會標註，缺料的部分會列出來要你補。</p>
+    <div class="bar" style="margin-top:0">
+      <button class="btn" id="runBrand">解析我的品牌</button>
+    </div>
+    <div id="outBrand"><p class="empty">尚未執行。</p></div>
+    <details class="raw" id="rawBrandWrap" hidden>
+      <summary>編輯這一段資料（會直接影響下一段）</summary>
+      <textarea id="rawBrand" rows="14"></textarea>
+      <div class="bar"><button class="btn ghost sm" id="saveBrand">套用修改</button></div>
+    </details>
+  </section>
+
+  <!-- 03 爬競品網站 -->
+  <section class="card rival" id="s3">
+    <h2><span class="idx">03</span>爬競品網站</h2>
+    <p class="desc">一次可以放多個競品，抓不到的那一家可以單獨改成手動貼上，不會卡住其他家。</p>
+    <div id="compRows"></div>
+    <div class="bar" style="margin-top:10px">
+      <button class="btn blue" id="runFetchComps">抓取全部競品</button>
+      <button class="btn ghost sm" id="addComp">增加一個競品</button>
+    </div>
+    <div class="log" id="log3" hidden></div>
+  </section>
+
+  <!-- 04 解析競品 -->
+  <section class="card rival" id="s4">
+    <h2><span class="idx">04</span>解析競品網站</h2>
+    <p class="desc">逐家拆定位、賣點、語氣、目標客群與價格訊號，並標出各家的強項與破口。</p>
+    <div class="bar" style="margin-top:0">
+      <button class="btn blue" id="runRivals">解析競品</button>
+    </div>
+    <div class="log" id="log4" hidden></div>
+    <div id="outRivals"><p class="empty">尚未執行。</p></div>
+    <details class="raw" id="rawRivalsWrap" hidden>
+      <summary>編輯這一段資料（會直接影響下一段）</summary>
+      <textarea id="rawRivals" rows="16"></textarea>
+      <div class="bar"><button class="btn ghost sm" id="saveRivals">套用修改</button></div>
+    </details>
+  </section>
+
+  <!-- 05 雙打比較 -->
+  <section class="card" id="s5">
+    <h2><span class="idx">05</span>雙打比較</h2>
+    <p class="desc">同一組構面把我方與各家競品放在一起對照，逐項給領先、相當或落後的判定，並找出沒人佔住的位置。</p>
+    <div class="row c2">
+      <div>
+        <label class="f" for="axes">想比較的構面（選填，用頓號分隔）</label>
+        <input type="text" id="axes" placeholder="留空就讓模型自己挑 6 到 8 個關鍵構面">
+      </div>
+      <div>
+        <label class="f" for="mkt">市場</label>
+        <input type="text" id="mkt" value="台灣繁體中文市場">
+      </div>
+    </div>
+    <div class="bar">
+      <button class="btn" id="runVersus">生成雙打比較</button>
+    </div>
+    <div id="outVersus"><p class="empty">尚未執行。</p></div>
+    <details class="raw" id="rawVersusWrap" hidden>
+      <summary>編輯這一段資料（會直接影響下一段）</summary>
+      <textarea id="rawVersus" rows="16"></textarea>
+      <div class="bar"><button class="btn ghost sm" id="saveVersus">套用修改</button></div>
+    </details>
+  </section>
+
+  <!-- 06 差異化策略 -->
+  <section class="card" id="s6">
+    <h2><span class="idx">06</span>差異化策略</h2>
+    <p class="desc">決定要放大哪些優勢、避開哪些對手已經佔滿的戰場，收斂成一句定位陳述與幾根訊息支柱。</p>
+    <div class="bar" style="margin-top:0">
+      <button class="btn" id="runDiff">生成差異化策略</button>
+    </div>
+    <div id="outDiff"><p class="empty">尚未執行。</p></div>
+    <details class="raw" id="rawDiffWrap" hidden>
+      <summary>編輯這一段資料（會直接影響下一段）</summary>
+      <textarea id="rawDiff" rows="16"></textarea>
+      <div class="bar"><button class="btn ghost sm" id="saveDiff">套用修改</button></div>
+    </details>
+  </section>
+
+  <!-- 07 行銷矩陣 -->
+  <section class="card" id="s7">
+    <h2><span class="idx">07</span>行銷矩陣規劃</h2>
+    <p class="desc">先切分眾，再用分眾乘漏斗階段鋪格子，每一格都掛回差異化策略的其中一根支柱。</p>
+    <div class="row c3">
+      <div>
+        <label class="f" for="nPersona">要切幾組分眾</label>
+        <select id="nPersona"><option>2</option><option selected>3</option><option>4</option><option>5</option></select>
+      </div>
+      <div>
+        <label class="f" for="channels">主要通路</label>
+        <input type="text" id="channels" value="Facebook、Instagram、LinkedIn、電子報、YouTube">
+      </div>
+      <div>
+        <label class="f" for="goal">這一季的商業目標</label>
+        <input type="text" id="goal" placeholder="例：招生 40 人、名單 500 筆">
+      </div>
+    </div>
+    <div class="bar">
+      <button class="btn" id="runMatrix">生成矩陣</button>
+    </div>
+    <div id="outMatrix"><p class="empty">尚未執行。</p></div>
+    <details class="raw" id="rawMatrixWrap" hidden>
+      <summary>編輯這一段資料（會直接影響下一段）</summary>
+      <textarea id="rawMatrix" rows="16"></textarea>
+      <div class="bar"><button class="btn ghost sm" id="saveMatrix">套用修改</button></div>
+    </details>
+  </section>
+
+  <!-- 08 貼文策略 -->
+  <section class="card" id="s8">
+    <h2><span class="idx">08</span>貼文策略</h2>
+    <p class="desc">每個分眾一張週表。左邊的方框勾起來，就會被送去第 09 段寫成完整文案。</p>
+    <div class="row c3">
+      <div>
+        <label class="f" for="weeks">要排幾週</label>
+        <select id="weeks"><option selected>1</option><option>2</option><option>4</option></select>
+      </div>
+      <div>
+        <label class="f" for="days">一週幾天</label>
+        <select id="days"><option>3</option><option selected>5</option><option>7</option></select>
+      </div>
+      <div>
+        <label class="f" for="tone">語氣覆寫（選填）</label>
+        <input type="text" id="tone" placeholder="留空就沿用品牌解析的語氣">
+      </div>
+    </div>
+    <div class="bar">
+      <button class="btn" id="runPosts">生成貼文策略</button>
+    </div>
+    <div id="outPosts"><p class="empty">尚未執行。</p></div>
+    <div class="selbar" id="selBar" hidden>
+      <span class="cnt" id="selCount">已勾選 0 則</span>
+      <button class="btn ghost sm" id="selAll">全選</button>
+      <button class="btn ghost sm" id="selNone">全部取消</button>
+      <button class="btn sm" id="goCopy">用勾選的貼文生成文案</button>
+    </div>
+    <details class="raw" id="rawPostsWrap" hidden>
+      <summary>編輯這一段資料</summary>
+      <textarea id="rawPosts" rows="16"></textarea>
+      <div class="bar"><button class="btn ghost sm" id="savePosts">套用修改</button></div>
+    </details>
+  </section>
+
+  <!-- 09 品牌文案 -->
+  <section class="card" id="s9">
+    <h2><span class="idx">09</span>品牌文案</h2>
+    <p class="desc">依照勾選的貼文逐則展開成可直接發的文案，語氣鎖在我方品牌，訊息鎖在差異化策略。</p>
+    <div class="row c3">
+      <div>
+        <label class="f" for="platform">主要平台</label>
+        <select id="platform">
+          <option selected>依貼文策略建議的形式</option>
+          <option>Facebook</option>
+          <option>Instagram</option>
+          <option>LinkedIn</option>
+          <option>Threads</option>
+          <option>電子報</option>
+        </select>
+      </div>
+      <div>
+        <label class="f" for="len">內文長度</label>
+        <select id="len">
+          <option>短（120 字內）</option>
+          <option selected>中（200 到 350 字）</option>
+          <option>長（400 到 600 字）</option>
+        </select>
+      </div>
+      <div>
+        <label class="f" for="variants">每則要幾個版本</label>
+        <select id="variants"><option selected>1</option><option>2</option><option>3</option></select>
+      </div>
+    </div>
+    <div class="bar">
+      <button class="btn" id="runCopy">生成品牌文案</button>
+      <button class="btn ghost sm" id="copyAll">複製全部文案</button>
+      <span class="dim" id="copyHint">先在第 08 段勾選要寫的貼文。</span>
+    </div>
+    <div class="log" id="log9" hidden></div>
+    <div id="outCopy"><p class="empty">尚未執行。</p></div>
+  </section>
+
+  </main>
+</div>
+</div>
+
+<script>
+/* =========================================================
+   狀態
+   ========================================================= */
+const S = {
+  page: {url:'', text:'', title:'', meta:''},
+  comps: [],          /* {url, text, title, meta, name} */
+  brand: null,
+  rivals: null,       /* {rivals:[...]} */
+  versus: null,
+  diff: null,
+  matrix: null,
+  posts: null,
+  copies: [],
+  sel: new Set(),
+  key: ''
+};
+
+/* =========================================================
+   供應商登錄表
+   kind 決定走哪條 API 路徑：
+     anthropic → Messages API
+     gemini    → generateContent
+     openai    → /chat/completions 相容格式（其餘六家共用）
+   ========================================================= */
+const PROVIDERS = {
+  anthropic: {
+    label:'Anthropic Claude', kind:'anthropic',
+    url:'https://api.anthropic.com/v1/messages',
+    models:['claude-sonnet-5','claude-opus-5','claude-haiku-4-5-20251001'],
+    note:'課堂預設。金鑰在 console.anthropic.com 申請。'
+  },
+  openai: {
+    label:'OpenAI', kind:'openai',
+    url:'https://api.openai.com/v1/chat/completions',
+    models:['gpt-4o-mini','gpt-4o','gpt-4.1-mini'],
+    note:'最多人已經有帳號。金鑰在 platform.openai.com 申請。'
+  },
+  gemini: {
+    label:'Google Gemini', kind:'gemini',
+    url:'https://generativelanguage.googleapis.com/v1beta/models/',
+    models:['gemini-2.0-flash','gemini-2.5-flash','gemini-2.5-pro'],
+    note:'有免費額度。金鑰在 aistudio.google.com 申請。'
+  },
+  deepseek: {
+    label:'DeepSeek', kind:'openai',
+    url:'https://api.deepseek.com/chat/completions',
+    models:['deepseek-chat','deepseek-reasoner'],
+    note:'單價便宜。金鑰在 platform.deepseek.com 申請。'
+  },
+  moonshot: {
+    label:'Kimi（Moonshot）', kind:'openai',
+    url:'https://api.moonshot.cn/v1/chat/completions',
+    models:['moonshot-v1-32k','moonshot-v1-128k','kimi-latest'],
+    note:'長文處理見長。海外帳號請改用 api.moonshot.ai 網域。'
+  },
+  zhipu: {
+    label:'智譜 GLM', kind:'openai',
+    url:'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+    models:['glm-4-plus','glm-4-flash','glm-4-air'],
+    note:'中國方案。glm-4-flash 有免費額度。'
+  },
+  minimax: {
+    label:'MiniMax', kind:'openai',
+    url:'https://api.minimax.chat/v1/text/chatcompletion_v2',
+    models:['MiniMax-Text-01','abab6.5s-chat'],
+    note:'中國方案。'
+  },
+  groq: {
+    label:'Groq', kind:'openai',
+    url:'https://api.groq.com/openai/v1/chat/completions',
+    models:['llama-3.3-70b-versatile','llama-3.1-8b-instant','qwen-2.5-32b'],
+    note:'速度極快、有免費額度，課堂示範友善。金鑰在 console.groq.com 申請。'
+  },
+  ollama: {
+    label:'Ollama（本機模型）', kind:'openai', needsKey:false,
+    url:'http://localhost:11434/v1/chat/completions',
+    models:['llama3.2','qwen2.5:7b','gemma3'],
+    note:'零 API 費用，跑在自己電腦上，不需要金鑰。啟動前請先在終端機執行 OLLAMA_ORIGINS=* ollama serve，否則瀏覽器會被 CORS 擋下。'
+  }
+};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function setState(n, txt, kind){
+  const el = $('st'+n); if(!el) return;
+  el.textContent = txt;
+  const li = el.closest('li');
+  if(li) li.dataset.state = kind || '';
+}
+function log(n, msg, cls){
+  const box = $('log'+n); if(!box) return;
+  box.hidden = false;
+  const t = new Date().toLocaleTimeString('zh-TW',{hour12:false});
+  box.innerHTML += `<span class="${cls||''}">[${t}] ${esc(msg)}</span>\n`;
+  box.scrollTop = box.scrollHeight;
+}
+function clearLog(n){ const b=$('log'+n); if(b){ b.innerHTML=''; b.hidden=true; } }
+
+/* =========================================================
+   金鑰保存（安全降級，存不了就只留在記憶體）
+   ========================================================= */
+function safeGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function safeSet(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }
+function safeDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+function refreshModels(){
+  const p = $('prov').value;
+  const P = PROVIDERS[p];
+  const dl = $('modellist');
+  dl.innerHTML = P.models.map(m=>`<option value="${m}">`).join('');
+  const saved = safeGet('bce.model.'+p);
+  $('model').value = saved || P.models[0];
+  $('provNote').textContent = P.note || '';
+  const needsKey = P.needsKey !== false;
+  $('key').placeholder = needsKey ? '貼上金鑰' : '這家不需要金鑰，留空即可';
+  $('key').disabled = !needsKey;
+  const k = needsKey ? safeGet('bce.key.'+p) : '';
+  if(k){ $('key').value = k; S.key = k; $('remember').checked = true; }
+  else { $('key').value = ''; }
+  syncKeyState();
+}
+function syncKeyState(){
+  S.key = $('key').value.trim();
+  const needsKey = PROVIDERS[$('prov').value].needsKey !== false;
+  if(S.key || !needsKey){ setState(0,'已設定','done'); }
+  else { setState(0,'未設定',''); }
+  if($('remember').checked && S.key){
+    const ok = safeSet('bce.key.'+$('prov').value, S.key);
+    safeSet('bce.model.'+$('prov').value, $('model').value.trim());
+    $('keyNote').textContent = ok ? '已存在這台瀏覽器。' : '這個環境不能保存，金鑰只留在本次分頁。';
+  } else {
+    safeDel('bce.key.'+$('prov').value);
+    $('keyNote').textContent = '';
+  }
+}
+$('prov').addEventListener('change', refreshModels);
+$('key').addEventListener('input', syncKeyState);
+$('model').addEventListener('input', syncKeyState);
+$('remember').addEventListener('change', syncKeyState);
+
+/* =========================================================
+   模型呼叫：九家統一介面
+   ========================================================= */
+async function postJSON(url, headers, body){
+  let r;
+  try{
+    r = await fetch(url,{ method:'POST', headers, body: JSON.stringify(body) });
+  }catch(e){
+    throw new Error('連不上供應商。常見原因：這家沒開放瀏覽器直連（CORS）、金鑰網域填錯、或本機模型還沒啟動。原始訊息：' + e.message);
+  }
+  const raw = await r.text();
+  let d;
+  try{ d = JSON.parse(raw); }catch(e){ d = null; }
+  if(!r.ok){
+    const m = d?.error?.message || d?.message || d?.base_resp?.status_msg || raw || '沒有錯誤內容';
+    throw new Error('HTTP ' + r.status + '：' + String(m).slice(0,300));
+  }
+  if(!d) throw new Error('供應商回傳的不是 JSON。開頭：' + raw.slice(0,180));
+  return d;
+}
+
+async function callLLM(sys, usr){
+  const P = PROVIDERS[$('prov').value];
+  const model = $('model').value.trim();
+  const key = $('key').value.trim();
+  const needsKey = P.needsKey !== false;
+  if(needsKey && !key) throw new Error('還沒填 API 金鑰。');
+  if(!model) throw new Error('還沒填模型名稱。');
+
+  if(P.kind === 'anthropic'){
+    const d = await postJSON(P.url, {
+      'content-type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },{
+      model, max_tokens:8000, system:sys,
+      messages:[{role:'user',content:usr}]
+    });
+    return (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+  }
+
+  if(P.kind === 'gemini'){
+    const url = P.url + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(key);
+    const d = await postJSON(url, {'content-type':'application/json'},{
+      system_instruction:{parts:[{text:sys}]},
+      contents:[{role:'user',parts:[{text:usr}]}],
+      generationConfig:{maxOutputTokens:8000}
+    });
+    return (d.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('');
+  }
+
+  /* OpenAI 相容格式：OpenAI、DeepSeek、Kimi、GLM、MiniMax、Groq、Ollama 共用 */
+  const headers = {'content-type':'application/json'};
+  if(key) headers['authorization'] = 'Bearer ' + key;
+  const d = await postJSON(P.url, headers, {
+    model,
+    messages:[{role:'system',content:sys},{role:'user',content:usr}]
+  });
+  const txt = d.choices?.[0]?.message?.content;
+  if(txt == null){
+    const m = d.base_resp?.status_msg || d.error?.message || JSON.stringify(d).slice(0,300);
+    throw new Error('供應商沒有回傳內容：' + m);
+  }
+  return txt;
+}
+
+/* JSON 抽取：容忍圍欄與前後贅字 */
+function parseJSON(raw){
+  let t = String(raw||'').trim();
+  t = t.replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'').trim();
+  try{ return JSON.parse(t); }catch(e){}
+  const a = t.indexOf('{'), b = t.lastIndexOf('}');
+  if(a>=0 && b>a){ try{ return JSON.parse(t.slice(a,b+1)); }catch(e){} }
+  const c = t.indexOf('['), d = t.lastIndexOf(']');
+  if(c>=0 && d>c){ try{ return JSON.parse(t.slice(c,d+1)); }catch(e){} }
+  throw new Error('模型沒有回傳可解析的 JSON。原始開頭：' + t.slice(0,180));
+}
+
+const JSON_RULE = `
+輸出規則（必須遵守）：
+1. 只輸出一個 JSON 物件，不要有任何前言、說明或 Markdown 圍欄。
+2. 全部使用繁體中文；中文標點一律全形，數字、英文、網址一律半形。
+3. 不要使用破折號。
+4. 沒有證據的內容標成推論，欄位 confidence 填 low；絕不編造具體數字、價格、客戶名稱或獎項。
+5. 談到競品時只根據給定語料判讀，不引用語料以外的傳聞，也不做貶抑性的無據指控。
+`;
+
+/* =========================================================
+   抓取共用
+   ========================================================= */
+function extractText(html){
+  let doc;
+  try{ doc = new DOMParser().parseFromString(html,'text/html'); }
+  catch(e){ return {title:'',meta:'',text:html.slice(0,20000)}; }
+  doc.querySelectorAll('script,style,noscript,svg,iframe').forEach(n=>n.remove());
+  const title = doc.querySelector('title')?.textContent?.trim() || '';
+  const metas = [];
+  doc.querySelectorAll('meta[name="description"],meta[property^="og:"],meta[name="keywords"]').forEach(m=>{
+    const k = m.getAttribute('name') || m.getAttribute('property');
+    const v = m.getAttribute('content');
+    if(k && v) metas.push(k + '：' + v);
+  });
+  const body = doc.body ? doc.body.innerText || doc.body.textContent || '' : '';
+  const text = body.replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+  return {title, meta:metas.join('\n'), text};
+}
+
+async function fetchPage(url, logN){
+  const tries = [
+    {name:'直連', run: async()=>{ const r = await fetch(url); if(!r.ok) throw new Error('HTTP '+r.status); return {kind:'html', body: await r.text()}; }},
+    {name:'r.jina.ai 讀取代理', run: async()=>{ const r = await fetch('https://r.jina.ai/'+url); if(!r.ok) throw new Error('HTTP '+r.status); return {kind:'text', body: await r.text()}; }},
+    {name:'allorigins 代理', run: async()=>{ const r = await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(url)); if(!r.ok) throw new Error('HTTP '+r.status); return {kind:'html', body: await r.text()}; }}
+  ];
+  for(const t of tries){
+    try{
+      log(logN,'嘗試 '+t.name+' …');
+      const res = await t.run();
+      if(!res.body || res.body.length < 60) throw new Error('內容過短');
+      log(logN,'成功：'+t.name,'ok');
+      return res;
+    }catch(e){
+      log(logN,t.name+' 失敗：'+e.message,'bad');
+    }
+  }
+  throw new Error('三種抓取方式都失敗，請改用手動貼上。');
+}
+
+async function grab(url, logN, cap){
+  const res = await fetchPage(url, logN);
+  let out;
+  if(res.kind === 'html' && /<\w+[\s>]/.test(res.body.slice(0,3000))){
+    out = extractText(res.body);
+  } else {
+    out = {title:'', meta:'', text:res.body};
+  }
+  if(out.text.length > (cap||24000)) out.text = out.text.slice(0, cap||24000);
+  return out;
+}
+
+/* =========================================================
+   01 爬我的網站
+   ========================================================= */
+$('togglePaste').addEventListener('click', ()=>{
+  const b = $('pasteBox');
+  b.hidden = !b.hidden;
+  $('togglePaste').textContent = b.hidden ? '改成手動貼上' : '收起貼上區';
+});
+$('pageText').addEventListener('input', ()=>{
+  S.page.text = $('pageText').value.trim();
+  S.page.url = $('url').value.trim();
+  if(S.page.text.length > 100){
+    setState(1,'已貼上 '+S.page.text.length+' 字','edit');
+    $('charCount').hidden=false; $('charCount').textContent = S.page.text.length+' 字';
+  }
+});
+
+async function doFetch(){
+  const url = $('url').value.trim();
+  if(!/^https?:\/\//i.test(url)){ alert('請填入完整網址，包含 https://'); return; }
+  clearLog(1);
+  setState(1,'抓取中','run');
+  $('runFetch').disabled = true;
+  try{
+    const out = await grab(url, 1, 24000);
+    S.page = {url, text:out.text, title:out.title, meta:out.meta};
+    $('pageText').value = out.text;
+    $('pasteBox').hidden = false;
+    $('togglePaste').textContent = '收起貼上區';
+    $('charCount').hidden = false;
+    $('charCount').textContent = out.text.length + ' 字';
+    log(1,'取得 '+out.text.length+' 字'+(out.title?'，標題：'+out.title:''),'hl');
+    setState(1,'已取得','done');
+  }catch(e){
+    log(1,e.message,'bad');
+    setState(1,'失敗','fail');
+    $('pasteBox').hidden = false;
+    $('togglePaste').textContent = '收起貼上區';
+  }finally{
+    $('runFetch').disabled = false;
+  }
+}
+$('runFetch').addEventListener('click', doFetch);
+
+/* =========================================================
+   03 爬競品網站
+   ========================================================= */
+function newComp(){ return {url:'', text:'', title:'', meta:'', name:''}; }
+
+function renderCompRows(){
+  const el = $('compRows');
+  el.innerHTML = S.comps.map((c,i)=>`
+    <div class="comprow" data-i="${i}">
+      <div class="head">
+        <span class="pill blue">競品 ${String.fromCharCode(65+i)}</span>
+        <input type="url" class="cUrl" value="${esc(c.url)}" placeholder="https://rival.com">
+        <button class="btn ghost tiny cDel" title="移除">移除</button>
+      </div>
+      <div class="meta">
+        <button class="btn ghost tiny cPaste">手動貼上</button>
+        <span class="pill cStat">${c.text ? c.text.length + ' 字' : '尚未抓取'}</span>
+        <span class="dim">${esc(c.title||'')}</span>
+      </div>
+      <div class="cBox" hidden style="margin-top:9px">
+        <textarea class="cText" rows="6" placeholder="把這家競品的首頁、產品頁文字貼進來">${esc(c.text)}</textarea>
+      </div>
+    </div>`).join('');
+
+  el.querySelectorAll('.comprow').forEach(row=>{
+    const i = +row.dataset.i;
+    row.querySelector('.cUrl').addEventListener('input', e=>{ S.comps[i].url = e.target.value.trim(); });
+    row.querySelector('.cDel').addEventListener('click', ()=>{
+      if(S.comps.length <= 1){ S.comps[0] = newComp(); }
+      else { S.comps.splice(i,1); }
+      renderCompRows();
+    });
+    row.querySelector('.cPaste').addEventListener('click', ()=>{
+      const b = row.querySelector('.cBox');
+      b.hidden = !b.hidden;
+    });
+    row.querySelector('.cText').addEventListener('input', e=>{
+      S.comps[i].text = e.target.value.trim();
+      row.querySelector('.cStat').textContent = S.comps[i].text.length + ' 字';
+      syncCompState();
+    });
+  });
+}
+function syncCompState(){
+  const n = S.comps.filter(c=>c.text && c.text.length>100).length;
+  if(n) setState(3, '已取得 '+n+' 家', 'done');
+  else setState(3, '待執行', '');
+}
+$('addComp').addEventListener('click', ()=>{
+  if(S.comps.length >= 5){ alert('最多五家競品，再多會稀釋掉分析的銳利度。'); return; }
+  S.comps.push(newComp()); renderCompRows();
+});
+async function doFetchComps(){
+  clearLog(3);
+  const btn = $('runFetchComps'); btn.disabled = true;
+  setState(3,'抓取中','run');
+  let ok = 0;
+  for(let i=0;i<S.comps.length;i++){
+    const c = S.comps[i];
+    const tag = '競品 ' + String.fromCharCode(65+i);
+    if(!/^https?:\/\//i.test(c.url)){
+      if(c.text && c.text.length>100){ log(3, tag+'：使用手動貼上的文字。','hl'); ok++; }
+      else log(3, tag+'：沒有有效網址，略過。','bad');
+      continue;
+    }
+    try{
+      log(3, tag+'：'+c.url);
+      const out = await grab(c.url, 3, 16000);
+      c.text = out.text; c.title = out.title; c.meta = out.meta;
+      log(3, tag+' 取得 '+out.text.length+' 字','hl');
+      ok++;
+    }catch(e){
+      log(3, tag+' 失敗：'+e.message,'bad');
+    }
+  }
+  renderCompRows();
+  if(ok) setState(3,'已取得 '+ok+' 家','done');
+  else setState(3,'全部失敗','fail');
+  btn.disabled = false;
+  return ok;
+}
+$('runFetchComps').addEventListener('click', ()=>{ doFetchComps(); });
+
+/* =========================================================
+   02 解析我的網站
+   ========================================================= */
+function brandPrompt(){
+  return {
+    sys: '你是資深品牌策略顧問，擅長從一個品牌的公開文字反推它的定位、語氣與風格。你只根據給定語料判讀，不腦補。' + JSON_RULE,
+    usr: `以下是我方品牌網站的文字語料，請解析這個品牌。
+
+網址：${S.page.url || '未提供'}
+頁面標題：${S.page.title || '未提供'}
+中繼資料：
+${S.page.meta || '無'}
+補充脈絡：${$('extra').value.trim() || '無'}
+
+語料開始
+${S.page.text.slice(0,18000)}
+語料結束
+
+輸出這個 JSON 結構：
+{
+  "brand_name": "",
+  "one_liner": "一句話定位，不超過 30 字",
+  "category": "所屬品類",
+  "offerings": ["主要產品或服務"],
+  "value_props": ["價值主張，3 到 5 條"],
+  "proof": ["語料中出現的信任證據，例如年資、案例、認證；沒有就給空陣列"],
+  "tone": {
+    "traits": ["語氣特徵，3 到 5 個形容詞"],
+    "register": "正式程度，例如專業口語、親切閒聊、權威教學",
+    "person": "人稱與距離感",
+    "sample_sentence": "模仿這個品牌語氣寫的一句示範句"
+  },
+  "style": {
+    "keywords": ["風格關鍵詞"],
+    "visual": "視覺調性推測",
+    "sentence_rhythm": "句子長短與節奏特徵"
+  },
+  "lexicon": {
+    "signature_words": ["品牌常用詞"],
+    "avoid_words": ["與這個品牌調性衝突、應避免的詞"]
+  },
+  "positioning_axis": "在市場上相對於同類的差異點",
+  "gaps": ["語料不足以判斷、需要人工補充的資訊"],
+  "confidence": "high 或 medium 或 low"
+}`
+  };
+}
+
+function renderBrand(b){
+  const el = $('outBrand');
+  if(!b){ el.innerHTML = '<p class="empty">尚未執行。</p>'; return; }
+  const list = a => (a&&a.length) ? a.map(x=>`<span class="tag">${esc(x)}</span>`).join('') : '<span class="dim">無</span>';
+  el.innerHTML = `
+    <div class="grouphead"><h3>${esc(b.brand_name||'未命名品牌')}</h3>
+      <span>${esc(b.category||'')}</span>
+      <span class="pill ${b.confidence==='high'?'acid':''}">信心 ${esc(b.confidence||'-')}</span></div>
+    <dl class="kv">
+      <dt>一句話定位</dt><dd>${esc(b.one_liner||'')}</dd>
+      <dt>差異點</dt><dd>${esc(b.positioning_axis||'')}</dd>
+      <dt>產品服務</dt><dd class="tags">${list(b.offerings)}</dd>
+      <dt>價值主張</dt><dd class="tags">${list(b.value_props)}</dd>
+      <dt>信任證據</dt><dd class="tags">${list(b.proof)}</dd>
+      <dt>語氣特徵</dt><dd class="tags">${list(b.tone&&b.tone.traits)}</dd>
+      <dt>正式程度</dt><dd>${esc(b.tone&&b.tone.register||'')}</dd>
+      <dt>人稱距離</dt><dd>${esc(b.tone&&b.tone.person||'')}</dd>
+      <dt>語氣示範</dt><dd>${esc(b.tone&&b.tone.sample_sentence||'')}</dd>
+      <dt>風格關鍵詞</dt><dd class="tags">${list(b.style&&b.style.keywords)}</dd>
+      <dt>視覺調性</dt><dd>${esc(b.style&&b.style.visual||'')}</dd>
+      <dt>句子節奏</dt><dd>${esc(b.style&&b.style.sentence_rhythm||'')}</dd>
+      <dt>常用詞</dt><dd class="tags">${list(b.lexicon&&b.lexicon.signature_words)}</dd>
+      <dt>應避免詞</dt><dd class="tags">${list(b.lexicon&&b.lexicon.avoid_words)}</dd>
+      <dt>待補資訊</dt><dd class="tags">${list(b.gaps)}</dd>
+    </dl>`;
+}
+
+/* =========================================================
+   04 解析競品
+   ========================================================= */
+function rivalPrompt(c, idx){
+  return {
+    sys: '你是競品分析研究員，只根據給定語料判讀一家公司的公開定位與說法，不引用語料以外的資訊，也不做無據的貶抑。' + JSON_RULE,
+    usr: `以下是一家競品的網站語料，請拆解這家競品。
+
+網址：${c.url || '未提供'}
+頁面標題：${c.title || '未提供'}
+中繼資料：
+${c.meta || '無'}
+
+語料開始
+${(c.text||'').slice(0,14000)}
+語料結束
+
+輸出這個 JSON 結構：
+{
+  "code": "RIVAL-${String.fromCharCode(65+idx)}",
+  "brand_name": "",
+  "url": "${c.url||''}",
+  "one_liner": "一句話定位，不超過 30 字",
+  "category": "所屬品類",
+  "offerings": ["主要產品或服務"],
+  "value_props": ["它主打的價值主張"],
+  "proof": ["語料中出現的信任證據；沒有就給空陣列"],
+  "tone": {"traits":["語氣特徵"], "register":"正式程度"},
+  "target_guess": "從語料推測它在打誰",
+  "price_signal": "價格帶訊號，例如有無公開定價、走高價或走量；沒線索就寫未揭露",
+  "content_angle": ["它慣用的內容切角"],
+  "strengths": ["它真正強的地方，2 到 4 條"],
+  "weaknesses": ["語料上看得出來的破口或沒說清楚的地方，2 到 4 條"],
+  "confidence": "high 或 medium 或 low"
+}`
+  };
+}
+
+function renderRivals(r){
+  const el = $('outRivals');
+  const arr = (r && r.rivals) || [];
+  if(!arr.length){ el.innerHTML = '<p class="empty">尚未執行。</p>'; return; }
+  const li = (t,a) => (a&&a.length) ? `<li><b>${t}</b>：${a.map(esc).join('、')}</li>` : '';
+  el.innerHTML = `<div class="pcards">${arr.map(x=>`
+    <div class="pcard rv">
+      <div class="who">${esc(x.code||'')}</div>
+      <h3>${esc(x.brand_name||'未命名')}</h3>
+      <div style="color:var(--ink-2);font-size:13px">${esc(x.one_liner||'')}</div>
+      <ul>
+        <li><b>品類</b>：${esc(x.category||'')}</li>
+        <li><b>在打誰</b>：${esc(x.target_guess||'')}</li>
+        <li><b>價格訊號</b>：${esc(x.price_signal||'')}</li>
+        ${li('主打價值',x.value_props)}
+        ${li('內容切角',x.content_angle)}
+        ${li('語氣',x.tone&&x.tone.traits)}
+        ${li('強項',x.strengths)}
+        ${li('破口',x.weaknesses)}
+      </ul>
+    </div>`).join('')}</div>`;
+}
+
+/* =========================================================
+   05 雙打比較
+   ========================================================= */
+function versusPrompt(){
+  const axes = $('axes').value.trim();
+  return {
+    sys: '你是市場定位分析師，擅長把我方與競品放在同一組構面上對照，並誠實指出我方落後的地方。' + JSON_RULE,
+    usr: `把我方品牌與各家競品放在同一組構面上做雙打比較。市場：${$('mkt').value.trim()}
+${axes ? '指定構面：' + axes : '請自己挑 6 到 8 個對這個品類真正關鍵的構面。'}
+判定必須誠實，我方落後的地方就寫落後，不要每一格都寫領先。
+
+我方品牌解析：
+${JSON.stringify(S.brand, null, 1)}
+
+競品解析：
+${JSON.stringify(S.rivals, null, 1)}
+
+輸出這個 JSON 結構：
+{
+  "headline": "一句話總結目前的競爭態勢",
+  "axes": [
+    {
+      "axis": "構面名稱",
+      "mine": "我方在這個構面的現況",
+      "rivals": [{"code":"RIVAL-A","name":"","value":"這家在這個構面的現況"}],
+      "verdict": "領先 或 相當 或 落後",
+      "note": "判定理由，一句話"
+    }
+  ],
+  "my_strengths": ["我方相對優勢"],
+  "my_weaknesses": ["我方相對弱點"],
+  "crowded_ground": ["競品已經講到爛、我方再講也贏不了的訴求"],
+  "white_space": ["目前沒有人真正佔住的位置"],
+  "confidence": "high 或 medium 或 low"
+}`
+  };
+}
+
+function renderVersus(v){
+  const el = $('outVersus');
+  if(!v){ el.innerHTML = '<p class="empty">尚未執行。</p>'; return; }
+  const axes = v.axes||[];
+  const codes = [];
+  axes.forEach(a=>(a.rivals||[]).forEach(r=>{ if(!codes.find(c=>c.code===r.code)) codes.push({code:r.code, name:r.name}); }));
+  const cls = t => t==='領先' ? 'win' : (t==='落後' ? 'lose' : 'tie');
+  const list = (t,a) => (a&&a.length) ? `<div class="grouphead"><h3>${t}</h3></div><div class="tags">${a.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>` : '';
+  el.innerHTML = `
+    ${v.headline ? `<div class="stmt"><span class="lb">競爭態勢</span>${esc(v.headline)}</div>` : ''}
+    <div class="tablewrap" style="margin-top:14px"><table class="grid">
+      <tr><th>構面</th><th>我方</th>${codes.map(c=>`<th>${esc(c.name||c.code)}</th>`).join('')}<th>判定</th></tr>
+      ${axes.map(a=>`<tr>
+        <td class="day"><b>${esc(a.axis||'')}</b></td>
+        <td>${esc(a.mine||'')}</td>
+        ${codes.map(c=>{
+          const hit = (a.rivals||[]).find(r=>r.code===c.code);
+          return `<td>${esc(hit ? hit.value : '')}</td>`;
+        }).join('')}
+        <td><span class="vd ${cls(a.verdict)}">${esc(a.verdict||'')}</span><br><span class="dim">${esc(a.note||'')}</span></td>
+      </tr>`).join('')}
+    </table></div>
+    ${list('我方優勢',v.my_strengths)}
+    ${list('我方弱點',v.my_weaknesses)}
+    ${list('已經打爛的戰場',v.crowded_ground)}
+    ${list('沒人佔住的位置',v.white_space)}`;
+}
+
+/* =========================================================
+   06 差異化策略
+   ========================================================= */
+function diffPrompt(){
+  return {
+    sys: '你是定位策略顧問。你的產出必須是可執行的取捨，明確說出要放大什麼、要放棄什麼，而不是列一堆都很重要的優點。' + JSON_RULE,
+    usr: `依據雙打比較的結果，訂出我方的差異化策略。
+必須包含明確的取捨：哪些戰場要主動放棄，理由是什麼。
+每根訊息支柱都要指出可以拿什麼當證據；如果我方目前沒有證據，就寫進 evidence_needed，不要編。
+
+我方品牌解析：
+${JSON.stringify(S.brand, null, 1)}
+
+雙打比較：
+${JSON.stringify(S.versus, null, 1)}
+
+輸出這個 JSON 結構：
+{
+  "positioning_statement": "一句話定位陳述，格式為：對某某人來說，我方是唯一能夠某某的某某",
+  "wedge": "最鋒利的切入楔子，一句話",
+  "amplify": [{"point":"要放大的優勢","why":"為什麼這一點打得贏","how":"在內容上具體怎麼放大"}],
+  "avoid": [{"battlefield":"要避開的戰場","why":"為什麼硬碰硬會輸"}],
+  "message_pillars": [{"pillar":"訊息支柱名稱","one_liner":"這根支柱的一句話說法","proof":"現有可用的證據","evidence_needed":"還缺什麼證據；不缺就填無"}],
+  "language_moves": {"use":["要開始用的說法"], "drop":["要停用的說法，通常是跟競品撞在一起的詞"]},
+  "risks": ["這個策略的風險與前提"],
+  "confidence": "high 或 medium 或 low"
+}`
+  };
+}
+
+function renderDiff(d){
+  const el = $('outDiff');
+  if(!d){ el.innerHTML = '<p class="empty">尚未執行。</p>'; return; }
+  el.innerHTML = `
+    <div class="stmt"><span class="lb">定位陳述</span>${esc(d.positioning_statement||'')}</div>
+    <div class="stmt" style="margin-top:10px;border-color:var(--line)"><span class="lb">切入楔子</span>${esc(d.wedge||'')}</div>
+
+    <div class="grouphead"><h3>要放大的優勢</h3><span>${(d.amplify||[]).length} 條</span></div>
+    <div class="tablewrap"><table class="grid">
+      <tr><th>優勢</th><th>為什麼打得贏</th><th>內容上怎麼放大</th></tr>
+      ${(d.amplify||[]).map(x=>`<tr><td><b>${esc(x.point||'')}</b></td><td>${esc(x.why||'')}</td><td>${esc(x.how||'')}</td></tr>`).join('')}
+    </table></div>
+
+    <div class="grouphead"><h3>要避開的戰場</h3><span>${(d.avoid||[]).length} 條</span></div>
+    <div class="tablewrap"><table class="grid rv">
+      <tr><th>戰場</th><th>為什麼不打</th></tr>
+      ${(d.avoid||[]).map(x=>`<tr><td><b>${esc(x.battlefield||'')}</b></td><td>${esc(x.why||'')}</td></tr>`).join('')}
+    </table></div>
+
+    <div class="grouphead"><h3>訊息支柱</h3><span>${(d.message_pillars||[]).length} 根</span></div>
+    <div class="tablewrap"><table class="grid">
+      <tr><th>支柱</th><th>一句話說法</th><th>現有證據</th><th>還缺的證據</th></tr>
+      ${(d.message_pillars||[]).map(x=>`<tr><td><b>${esc(x.pillar||'')}</b></td><td>${esc(x.one_liner||'')}</td><td>${esc(x.proof||'')}</td><td>${esc(x.evidence_needed||'')}</td></tr>`).join('')}
+    </table></div>
+
+    <div class="grouphead"><h3>用語調整</h3></div>
+    <dl class="kv">
+      <dt>開始用</dt><dd class="tags">${((d.language_moves&&d.language_moves.use)||[]).map(x=>`<span class="tag">${esc(x)}</span>`).join('')||'<span class="dim">無</span>'}</dd>
+      <dt>停止用</dt><dd class="tags">${((d.language_moves&&d.language_moves.drop)||[]).map(x=>`<span class="tag">${esc(x)}</span>`).join('')||'<span class="dim">無</span>'}</dd>
+      <dt>風險與前提</dt><dd class="tags">${(d.risks||[]).map(x=>`<span class="tag">${esc(x)}</span>`).join('')||'<span class="dim">無</span>'}</dd>
+    </dl>`;
+}
+
+/* =========================================================
+   07 行銷矩陣
+   ========================================================= */
+function matrixPrompt(){
+  return {
+    sys: '你是內容行銷策略規劃師，產出的矩陣必須每一格都可執行，不能只寫抽象方向。' + JSON_RULE,
+    usr: `先依品牌與差異化策略切出 ${$('nPersona').value} 組分眾，再規劃行銷矩陣。
+每組分眾必須在痛點與購買動機上明顯不同，能各自撐起一條內容線。
+每個分眾都要涵蓋認知、考慮、轉換、留存四個漏斗階段，共 分眾數 乘 4 格。
+每一格都要在 pillar 欄位掛回差異化策略的其中一根訊息支柱。
+可用通路：${$('channels').value.trim()}
+這一季商業目標：${$('goal').value.trim() || '未指定，請以建立名單與信任為預設目標'}
+市場：${$('mkt').value.trim()}
+
+我方品牌解析：
+${JSON.stringify(S.brand, null, 1)}
+
+差異化策略：
+${JSON.stringify(S.diff, null, 1)}
+
+輸出這個 JSON 結構：
+{
+  "ta_summary": "整體 TA 的一段話描述",
+  "segments": [
+    {
+      "code": "英文短代號，例如 BUSY-OPS",
+      "name": "人物代稱，例如 忙到沒空學工具的行銷主管",
+      "one_liner": "一句話描述這個人",
+      "profile": {"role":"", "context":"所處情境"},
+      "pains": ["痛點，3 條"],
+      "desires": ["渴望，3 條"],
+      "objections": ["會讓他不買的疑慮，3 條"],
+      "rival_pull": "這個人現在最可能被哪一家競品吸走，為什麼",
+      "channels": ["他實際會出沒的資訊管道"],
+      "trigger_message": "最可能打動他的一句訊息"
+    }
+  ],
+  "matrix": [
+    {
+      "persona_code": "對應上面的 code",
+      "persona_name": "",
+      "funnel": "認知 或 考慮 或 轉換 或 留存",
+      "pillar": "掛回的訊息支柱",
+      "angle": "這一格的溝通主軸，一句話",
+      "formats": ["適合的內容形式"],
+      "channels": ["這一格主打的通路"],
+      "cta": "行動呼籲",
+      "kpi": "驗收指標，可量測",
+      "cadence": "建議頻率"
+    }
+  ],
+  "notes": ["整體執行提醒"]
+}`
+  };
+}
+
+function renderMatrix(m){
+  const el = $('outMatrix');
+  if(!m){ el.innerHTML = '<p class="empty">尚未執行。</p>'; return; }
+  const li = (t,a) => (a&&a.length) ? `<li><b>${t}</b>：${a.map(esc).join('、')}</li>` : '';
+  let h = m.ta_summary ? `<p style="color:var(--ink-2);font-size:13.5px">${esc(m.ta_summary)}</p>` : '';
+  if((m.segments||[]).length){
+    h += `<div class="pcards">${m.segments.map(x=>`
+      <div class="pcard">
+        <div class="who">${esc(x.code||'')}</div>
+        <h3>${esc(x.name||'')}</h3>
+        <div style="color:var(--ink-2);font-size:13px">${esc(x.one_liner||'')}</div>
+        <ul>
+          <li><b>情境</b>：${esc(x.profile&&x.profile.role||'')} ${esc(x.profile&&x.profile.context||'')}</li>
+          ${li('痛點',x.pains)}
+          ${li('渴望',x.desires)}
+          ${li('疑慮',x.objections)}
+          <li><b>被誰吸走</b>：${esc(x.rival_pull||'')}</li>
+          ${li('出沒管道',x.channels)}
+          <li><b>打動訊息</b>：${esc(x.trigger_message||'')}</li>
+        </ul>
+      </div>`).join('')}</div>`;
+  }
+  const rows = m.matrix||[];
+  const groups = {};
+  rows.forEach(r=>{ (groups[r.persona_name||r.persona_code||'未分類'] ||= []).push(r); });
+  for(const g in groups){
+    h += `<div class="grouphead"><h3>${esc(g)}</h3><span>${groups[g].length} 格</span></div>
+    <div class="tablewrap"><table class="grid">
+      <tr><th>漏斗階段</th><th>訊息支柱</th><th>溝通主軸</th><th>內容形式</th><th>通路</th><th>CTA</th><th>指標</th><th>頻率</th></tr>
+      ${groups[g].map(r=>`<tr>
+        <td class="day"><b>${esc(r.funnel||'')}</b></td>
+        <td>${esc(r.pillar||'')}</td>
+        <td>${esc(r.angle||'')}</td>
+        <td>${esc((r.formats||[]).join('、'))}</td>
+        <td>${esc((r.channels||[]).join('、'))}</td>
+        <td>${esc(r.cta||'')}</td>
+        <td>${esc(r.kpi||'')}</td>
+        <td>${esc(r.cadence||'')}</td>
+      </tr>`).join('')}
+    </table></div>`;
+  }
+  if(m.notes&&m.notes.length){
+    h += `<div class="grouphead"><h3>執行提醒</h3></div><ul style="color:var(--ink-2);font-size:13.5px">${m.notes.map(n=>'<li>'+esc(n)+'</li>').join('')}</ul>`;
+  }
+  el.innerHTML = h;
+}
+
+/* =========================================================
+   08 貼文策略
+   ========================================================= */
+function postsPrompt(){
+  const dayN = parseInt($('days').value,10);
+  const names = ['星期一','星期二','星期三','星期四','星期五','星期六','星期日'].slice(0,dayN);
+  return {
+    sys: '你是社群內容主編，排出來的週表要能直接交給小編執行，每一則都有清楚的角度與鉤子。' + JSON_RULE,
+    usr: `依據行銷矩陣，為每一個分眾排 ${$('weeks').value} 週的貼文策略，一週 ${dayN} 則，使用這些日名：${names.join('、')}。
+語氣：${$('tone').value.trim() || '沿用品牌解析的語氣特徵與語彙庫'}
+每一週的貼文必須橫跨不同漏斗階段，不能整週都在賣。
+每一則都要在 pillar 欄位掛回差異化策略的訊息支柱，並在 edge 欄位寫出這一則跟競品說法不同在哪。
+
+我方品牌解析：
+${JSON.stringify(S.brand, null, 1)}
+
+差異化策略：
+${JSON.stringify(S.diff, null, 1)}
+
+行銷矩陣：
+${JSON.stringify(S.matrix, null, 1)}
+
+輸出這個 JSON 結構：
+{
+  "plans": [
+    {
+      "persona_code": "",
+      "persona_name": "",
+      "weeks": [
+        {
+          "week": 1,
+          "theme": "這一週的主軸",
+          "posts": [
+            {
+              "day": "星期一",
+              "topic": "主題，控制在 10 字內",
+              "purpose": "目的，控制在 6 字內，例如建立專業、建立信任、教育市場、建立品牌、引導成交",
+              "funnel": "對應漏斗階段",
+              "pillar": "對應的訊息支柱",
+              "angle": "貼文角度，一句話",
+              "hook": "可直接用的開場第一句",
+              "edge": "跟競品說法不同在哪，一句話",
+              "format": "形式，例如圖文、短影音、輪播",
+              "cta": "行動呼籲"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}`
+  };
+}
+
+/* 逐則走訪，給穩定 id */
+function eachPost(cb){
+  ((S.posts&&S.posts.plans)||[]).forEach((plan,pi)=>{
+    (plan.weeks||[]).forEach((w,wi)=>{
+      (w.posts||[]).forEach((post,xi)=>{
+        cb({id:`p${pi}-${wi}-${xi}`, post, plan, week:w});
+      });
+    });
+  });
+}
+
+function renderPosts(p){
+  const el = $('outPosts');
+  if(!p){ el.innerHTML = '<p class="empty">尚未執行。</p>'; $('selBar').hidden = true; return; }
+  let h = '';
+  (p.plans||[]).forEach((plan,pi)=>{
+    (plan.weeks||[]).forEach((w,wi)=>{
+      h += `<div class="grouphead"><h3>${esc(plan.persona_name||plan.persona_code||'')}</h3>
+            <span>第 ${esc(w.week||1)} 週：${esc(w.theme||'')}</span>
+            <button class="btn ghost tiny wkSel" data-wk="p${pi}-${wi}">整週勾選</button></div>
+      <div class="tablewrap"><table class="grid">
+        <tr><th class="pick"></th><th>星期</th><th>主題</th><th>目的</th><th>貼文角度與鉤子</th><th>差異點</th><th>形式</th><th>CTA</th></tr>
+        ${(w.posts||[]).map((x,xi)=>{
+          const id = `p${pi}-${wi}-${xi}`;
+          const on = S.sel.has(id);
+          return `<tr class="${on?'picked':''}" data-id="${id}">
+          <td class="pick"><input type="checkbox" class="pk" data-id="${id}" ${on?'checked':''}></td>
+          <td class="day">${esc(x.day||'')}</td>
+          <td><b>${esc(x.topic||'')}</b></td>
+          <td>${esc(x.purpose||'')}</td>
+          <td>${esc(x.angle||'')}<br><span class="dim">鉤子：${esc(x.hook||'')}</span></td>
+          <td>${esc(x.edge||'')}</td>
+          <td>${esc(x.format||'')}</td>
+          <td>${esc(x.cta||'')}</td>
+        </tr>`;}).join('')}
+      </table></div>`;
+    });
+  });
+  el.innerHTML = h || '<p class="empty">沒有產出內容。</p>';
+  $('selBar').hidden = !h;
+  wirePicks();
+  updateSel();
+}
+
+function wirePicks(){
+  $('outPosts').querySelectorAll('input.pk').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const id = cb.dataset.id;
+      if(cb.checked) S.sel.add(id); else S.sel.delete(id);
+      const tr = cb.closest('tr');
+      if(tr) tr.classList.toggle('picked', cb.checked);
+      updateSel();
+    });
+  });
+  $('outPosts').querySelectorAll('.wkSel').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const pre = btn.dataset.wk + '-';
+      const boxes = [...$('outPosts').querySelectorAll('input.pk')].filter(b=>b.dataset.id.startsWith(pre));
+      const allOn = boxes.every(b=>b.checked);
+      boxes.forEach(b=>{
+        b.checked = !allOn;
+        if(b.checked) S.sel.add(b.dataset.id); else S.sel.delete(b.dataset.id);
+        b.closest('tr').classList.toggle('picked', b.checked);
+      });
+      updateSel();
+    });
+  });
+}
+function updateSel(){
+  const n = S.sel.size;
+  $('selCount').textContent = '已勾選 ' + n + ' 則';
+  $('copyHint').textContent = n ? ('待生成 ' + n + ' 則文案。') : '先在第 08 段勾選要寫的貼文。';
+  $('goCopy').disabled = n === 0;
+  $('runCopy').disabled = n === 0;
+}
+$('selAll').addEventListener('click', ()=>{
+  $('outPosts').querySelectorAll('input.pk').forEach(b=>{
+    b.checked = true; S.sel.add(b.dataset.id); b.closest('tr').classList.add('picked');
+  });
+  updateSel();
+});
+$('selNone').addEventListener('click', ()=>{
+  $('outPosts').querySelectorAll('input.pk').forEach(b=>{
+    b.checked = false; b.closest('tr').classList.remove('picked');
+  });
+  S.sel.clear();
+  updateSel();
+});
+$('goCopy').addEventListener('click', ()=>{ $('s9').scrollIntoView({behavior:'smooth',block:'start'}); });
+
+/* =========================================================
+   09 品牌文案
+   ========================================================= */
+function selectedPosts(){
+  const out = [];
+  eachPost(({id, post, plan, week})=>{
+    if(S.sel.has(id)) out.push({
+      ref:id, persona:plan.persona_name||plan.persona_code||'', week:week.week||1,
+      theme:week.theme||'', ...post
+    });
+  });
+  return out;
+}
+
+function copyPrompt(batch){
+  const voice = {
+    tone: S.brand?.tone, style: S.brand?.style, lexicon: S.brand?.lexicon,
+    brand_name: S.brand?.brand_name, one_liner: S.brand?.one_liner
+  };
+  return {
+    sys: '你是這個品牌的社群主筆。你寫的文案要像品牌自己寫的，不是像通用行銷模板。開場第一句必須抓住人，不要用問句開場的老套。' + JSON_RULE,
+    usr: `依據以下貼文規格，逐則寫出可直接發布的完整文案。
+平台：${$('platform').value}
+內文長度：${$('len').value}
+每則要 ${$('variants').value} 個版本，版本之間要真的不同，不能只換幾個字。
+語氣與用詞必須貼合我方品牌的語彙庫，並避開 avoid_words。
+訊息要扣住差異化策略，不要寫成競品也能照抄的通用內容。
+只描述品牌真實有的東西，不要編造數字、客戶名稱、優惠或期限。
+
+我方品牌語感：
+${JSON.stringify(voice, null, 1)}
+
+差異化策略：
+${JSON.stringify({positioning_statement:S.diff?.positioning_statement, wedge:S.diff?.wedge, message_pillars:S.diff?.message_pillars, language_moves:S.diff?.language_moves}, null, 1)}
+
+要寫的貼文：
+${JSON.stringify(batch, null, 1)}
+
+輸出這個 JSON 結構：
+{
+  "copies": [
+    {
+      "ref": "對應上面貼文的 ref",
+      "persona": "",
+      "day": "",
+      "topic": "",
+      "platform": "",
+      "variants": [
+        {
+          "label": "版本 A",
+          "headline": "第一行鉤子，可直接當開頭",
+          "body": "完整內文，段落之間用換行分隔",
+          "cta": "結尾行動呼籲",
+          "hashtags": ["標籤，不含井字號"],
+          "visual": "搭配的視覺或影片建議，一句話"
+        }
+      ],
+      "notes": "發布時要注意的事，沒有就填無"
+    }
+  ]
+}`
+  };
+}
+
+function renderCopies(){
+  const el = $('outCopy');
+  if(!S.copies.length){ el.innerHTML = '<p class="empty">尚未執行。</p>'; return; }
+  el.innerHTML = S.copies.map(c=>`
+    <div class="copycard">
+      <div class="ch">
+        <h3>${esc(c.topic||'')}</h3>
+        <span class="dim">${esc(c.persona||'')}　${esc(c.day||'')}　${esc(c.platform||'')}</span>
+      </div>
+      ${(c.variants||[]).map((v,i)=>`
+        <div style="margin-top:${i?'16px':'0'};padding-top:${i?'14px':'0'};border-top:${i?'1px solid var(--line)':'none'}">
+          <div class="ch">
+            <span class="pill acid">${esc(v.label||('版本 '+String.fromCharCode(65+i)))}</span>
+            <button class="btn ghost tiny cpBtn" data-ref="${esc(c.ref)}" data-vi="${i}">複製這一版</button>
+          </div>
+          <p class="hd">${esc(v.headline||'')}</p>
+          <div class="bd">${esc(v.body||'')}</div>
+          <div class="ht">${(v.hashtags||[]).map(h=>'#'+esc(h)).join('　')}</div>
+          <div class="ft">CTA：${esc(v.cta||'')}<br>視覺：${esc(v.visual||'')}</div>
+        </div>`).join('')}
+      ${c.notes && c.notes!=='無' ? `<div class="ft">提醒：${esc(c.notes)}</div>` : ''}
+    </div>`).join('');
+
+  el.querySelectorAll('.cpBtn').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const c = S.copies.find(x=>String(x.ref)===b.dataset.ref);
+      const v = c && (c.variants||[])[+b.dataset.vi];
+      if(!v) return;
+      const t = [v.headline, '', v.body, '', v.cta, (v.hashtags||[]).map(h=>'#'+h).join(' ')].join('\n');
+      navigator.clipboard.writeText(t).then(()=>{
+        b.textContent = '已複製';
+        setTimeout(()=>b.textContent='複製這一版', 1600);
+      }).catch(()=>alert('這個瀏覽器不允許自動複製，請手動選取。'));
+    });
+  });
+}
+
+$('runCopy').addEventListener('click', async ()=>{
+  const picked = selectedPosts();
+  if(!picked.length){ alert('先在第 08 段勾選要寫的貼文。'); return; }
+  if(!S.brand){ alert('先跑完品牌解析，文案才有語感可以模仿。'); return; }
+  const btn = $('runCopy'); btn.disabled = true;
+  clearLog(9);
+  setState(9,'執行中','run');
+  S.copies = [];
+  $('outCopy').innerHTML = '<p class="empty"><span class="spin"></span> 正在寫文案。</p>';
+  const size = 4;
+  try{
+    for(let i=0;i<picked.length;i+=size){
+      const batch = picked.slice(i, i+size);
+      log(9, '第 ' + (Math.floor(i/size)+1) + ' 批，共 ' + batch.length + ' 則 …');
+      const p = copyPrompt(batch);
+      const data = parseJSON(await callLLM(p.sys, p.usr));
+      (data.copies||[]).forEach(c=>S.copies.push(c));
+      log(9, '完成 ' + S.copies.length + ' / ' + picked.length, 'ok');
+      renderCopies();
+    }
+    setState(9,'已完成 '+S.copies.length+' 則','done');
+  }catch(e){
+    log(9, '失敗：'+e.message, 'bad');
+    if(!S.copies.length) $('outCopy').innerHTML = '<div class="err">失敗：'+esc(e.message)+'</div>';
+    setState(9,'部分失敗','fail');
+  }finally{ btn.disabled = false; }
+});
+
+$('copyAll').addEventListener('click', ()=>{
+  if(!S.copies.length){ alert('還沒有文案可以複製。'); return; }
+  const L = [];
+  S.copies.forEach(c=>{
+    L.push('【' + (c.persona||'') + '　' + (c.day||'') + '　' + (c.topic||'') + '】');
+    (c.variants||[]).forEach(v=>{
+      L.push(v.label||'', v.headline||'', '', v.body||'', '', v.cta||'', (v.hashtags||[]).map(h=>'#'+h).join(' '), '');
+    });
+    L.push('');
+  });
+  navigator.clipboard.writeText(L.join('\n')).then(()=>{
+    $('copyAll').textContent = '已複製全部';
+    setTimeout(()=>$('copyAll').textContent='複製全部文案', 1600);
+  }).catch(()=>alert('這個瀏覽器不允許自動複製，請手動選取。'));
+});
+
+/* =========================================================
+   跑各階段
+   ========================================================= */
+function showRaw(which, data){
+  const w = $('raw'+which+'Wrap'); if(!w) return;
+  w.hidden = false;
+  $('raw'+which).value = JSON.stringify(data, null, 2);
+}
+
+async function runStage(n, btnId, outId, key, buildPrompt, render, rawName){
+  const btn = $(btnId);
+  const out = $(outId);
+  setState(n,'執行中','run');
+  btn.disabled = true;
+  out.innerHTML = '<p class="empty"><span class="spin"></span> 模型思考中，語料多的時候可能要 30 秒以上。</p>';
+  try{
+    const p = buildPrompt();
+    const data = parseJSON(await callLLM(p.sys, p.usr));
+    S[key] = data;
+    render(data);
+    showRaw(rawName, data);
+    setState(n,'已完成','done');
+  }catch(e){
+    out.innerHTML = '<div class="err">失敗：'+esc(e.message)+'</div>';
+    setState(n,'失敗','fail');
+    throw e;
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function runRivals(){
+  const live = S.comps.filter(c=>c.text && c.text.length>100);
+  if(!live.length){ alert('沒有可分析的競品語料，先抓取或手動貼上。'); return; }
+  const btn = $('runRivals'); btn.disabled = true;
+  clearLog(4);
+  setState(4,'執行中','run');
+  $('outRivals').innerHTML = '<p class="empty"><span class="spin"></span> 逐家解析中。</p>';
+  const acc = [];
+  try{
+    for(let i=0;i<live.length;i++){
+      log(4, '解析競品 ' + String.fromCharCode(65+i) + ' …');
+      const p = rivalPrompt(live[i], i);
+      const d = parseJSON(await callLLM(p.sys, p.usr));
+      acc.push(d);
+      S.rivals = {rivals:acc};
+      renderRivals(S.rivals);
+      log(4, '完成：' + (d.brand_name||'未命名'), 'ok');
+    }
+    showRaw('Rivals', S.rivals);
+    setState(4,'已完成 '+acc.length+' 家','done');
+  }catch(e){
+    log(4, '失敗：'+e.message, 'bad');
+    if(!acc.length) $('outRivals').innerHTML = '<div class="err">失敗：'+esc(e.message)+'</div>';
+    setState(4, acc.length ? '部分失敗' : '失敗', 'fail');
+    throw e;
+  }finally{ btn.disabled = false; }
+}
+
+$('runBrand').addEventListener('click', ()=>{
+  S.page.text = $('pageText').value.trim() || S.page.text;
+  if(!S.page.text){ alert('先抓取網站，或手動貼上網頁文字。'); return; }
+  runStage(2,'runBrand','outBrand','brand',brandPrompt,renderBrand,'Brand').catch(()=>{});
+});
+$('runRivals').addEventListener('click', ()=>{ runRivals().catch(()=>{}); });
+$('runVersus').addEventListener('click', ()=>{
+  if(!S.brand){ alert('先解析我的網站。'); return; }
+  if(!S.rivals){ alert('先解析競品網站。'); return; }
+  runStage(5,'runVersus','outVersus','versus',versusPrompt,renderVersus,'Versus').catch(()=>{});
+});
+$('runDiff').addEventListener('click', ()=>{
+  if(!S.versus){ alert('先跑完雙打比較。'); return; }
+  runStage(6,'runDiff','outDiff','diff',diffPrompt,renderDiff,'Diff').catch(()=>{});
+});
+$('runMatrix').addEventListener('click', ()=>{
+  if(!S.diff){ alert('先跑完差異化策略。'); return; }
+  runStage(7,'runMatrix','outMatrix','matrix',matrixPrompt,renderMatrix,'Matrix').catch(()=>{});
+});
+$('runPosts').addEventListener('click', ()=>{
+  if(!S.matrix){ alert('先跑完行銷矩陣。'); return; }
+  S.sel.clear();
+  runStage(8,'runPosts','outPosts','posts',postsPrompt,renderPosts,'Posts').catch(()=>{});
+});
+
+/* 手動修改後套用 */
+function wireSave(btn, raw, key, n, render){
+  $(btn).addEventListener('click', ()=>{
+    try{
+      S[key] = JSON.parse($(raw).value);
+      render(S[key]);
+      setState(n,'已人工修改','edit');
+    }catch(e){ alert('JSON 格式有誤：'+e.message); }
+  });
+}
+wireSave('saveBrand','rawBrand','brand',2,renderBrand);
+wireSave('saveRivals','rawRivals','rivals',4,renderRivals);
+wireSave('saveVersus','rawVersus','versus',5,renderVersus);
+wireSave('saveDiff','rawDiff','diff',6,renderDiff);
+wireSave('saveMatrix','rawMatrix','matrix',7,renderMatrix);
+wireSave('savePosts','rawPosts','posts',8,renderPosts);
+
+/* 一鍵跑完 */
+$('runAll').addEventListener('click', async ()=>{
+  const btn = $('runAll'); btn.disabled = true;
+  try{
+    if($('url').value.trim() && !S.page.text) await doFetch();
+    S.page.text = $('pageText').value.trim() || S.page.text;
+    if(!S.page.text){ alert('沒有我方網頁內容可以分析。'); return; }
+    await runStage(2,'runBrand','outBrand','brand',brandPrompt,renderBrand,'Brand');
+
+    const needFetch = S.comps.some(c=>/^https?:\/\//i.test(c.url) && !c.text);
+    if(needFetch) await doFetchComps();
+    if(S.comps.some(c=>c.text && c.text.length>100)){
+      await runRivals();
+      await runStage(5,'runVersus','outVersus','versus',versusPrompt,renderVersus,'Versus');
+      await runStage(6,'runDiff','outDiff','diff',diffPrompt,renderDiff,'Diff');
+    } else {
+      alert('沒有競品語料，這一輪會略過雙打比較與差異化策略。');
+    }
+    await runStage(7,'runMatrix','outMatrix','matrix',matrixPrompt,renderMatrix,'Matrix');
+    S.sel.clear();
+    await runStage(8,'runPosts','outPosts','posts',postsPrompt,renderPosts,'Posts');
+  }catch(e){
+    /* 各階段已顯示錯誤 */
+  }finally{ btn.disabled = false; }
+});
+
+/* =========================================================
+   匯出
+   ========================================================= */
+function download(name, text, mime){
+  const b = new Blob([text],{type:mime||'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download = name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+const cell = v => String(v==null?'':v).replace(/\|/g,'／');
+
+function toMarkdown(){
+  const L = [];
+  const b = S.brand, r = S.rivals, v = S.versus, d = S.diff, m = S.matrix, po = S.posts;
+  L.push('# 品牌內容策略：' + (b?.brand_name || S.page.url || '未命名'));
+  L.push('', '來源：' + (S.page.url||'手動貼上') + '｜產出日期：' + new Date().toLocaleDateString('zh-TW'), '');
+  if(b){
+    L.push('## 一、我方品牌解析','',
+      '- 定位：' + (b.one_liner||''),
+      '- 品類：' + (b.category||''),
+      '- 差異點：' + (b.positioning_axis||''),
+      '- 價值主張：' + (b.value_props||[]).join('、'),
+      '- 語氣：' + ((b.tone&&b.tone.traits)||[]).join('、') + '（' + (b.tone?.register||'') + '）',
+      '- 常用詞：' + ((b.lexicon&&b.lexicon.signature_words)||[]).join('、'),
+      '- 應避免詞：' + ((b.lexicon&&b.lexicon.avoid_words)||[]).join('、'),
+      '- 待補資訊：' + (b.gaps||[]).join('、'), '');
+  }
+  if(r&&r.rivals){
+    L.push('## 二、競品解析','');
+    r.rivals.forEach(x=>{
+      L.push('### ' + (x.brand_name||'') + '（' + (x.code||'') + '）','',
+        '- 網址：' + (x.url||''),
+        '- 定位：' + (x.one_liner||''),
+        '- 在打誰：' + (x.target_guess||''),
+        '- 價格訊號：' + (x.price_signal||''),
+        '- 主打價值：' + (x.value_props||[]).join('、'),
+        '- 內容切角：' + (x.content_angle||[]).join('、'),
+        '- 強項：' + (x.strengths||[]).join('、'),
+        '- 破口：' + (x.weaknesses||[]).join('、'), '');
+    });
+  }
+  if(v){
+    L.push('## 三、雙打比較','', v.headline||'', '');
+    const codes = [];
+    (v.axes||[]).forEach(a=>(a.rivals||[]).forEach(x=>{ if(!codes.find(c=>c.code===x.code)) codes.push({code:x.code,name:x.name}); }));
+    L.push('| 構面 | 我方 | ' + codes.map(c=>c.name||c.code).join(' | ') + ' | 判定 |');
+    L.push('| --- | --- | ' + codes.map(()=>'---').join(' | ') + ' | --- |');
+    (v.axes||[]).forEach(a=>{
+      const cs = codes.map(c=>{ const h=(a.rivals||[]).find(x=>x.code===c.code); return cell(h?h.value:''); });
+      L.push('| ' + [cell(a.axis), cell(a.mine), ...cs, cell(a.verdict)].join(' | ') + ' |');
+    });
+    L.push('',
+      '- 我方優勢：' + (v.my_strengths||[]).join('、'),
+      '- 我方弱點：' + (v.my_weaknesses||[]).join('、'),
+      '- 已經打爛的戰場：' + (v.crowded_ground||[]).join('、'),
+      '- 沒人佔住的位置：' + (v.white_space||[]).join('、'), '');
+  }
+  if(d){
+    L.push('## 四、差異化策略','',
+      '**定位陳述**：' + (d.positioning_statement||''), '',
+      '**切入楔子**：' + (d.wedge||''), '',
+      '### 要放大的優勢','',
+      '| 優勢 | 為什麼打得贏 | 怎麼放大 |','| --- | --- | --- |');
+    (d.amplify||[]).forEach(x=>L.push('| ' + [cell(x.point),cell(x.why),cell(x.how)].join(' | ') + ' |'));
+    L.push('', '### 要避開的戰場','', '| 戰場 | 為什麼不打 |','| --- | --- |');
+    (d.avoid||[]).forEach(x=>L.push('| ' + [cell(x.battlefield),cell(x.why)].join(' | ') + ' |'));
+    L.push('', '### 訊息支柱','', '| 支柱 | 一句話說法 | 現有證據 | 還缺的證據 |','| --- | --- | --- | --- |');
+    (d.message_pillars||[]).forEach(x=>L.push('| ' + [cell(x.pillar),cell(x.one_liner),cell(x.proof),cell(x.evidence_needed)].join(' | ') + ' |'));
+    L.push('',
+      '- 開始用：' + ((d.language_moves&&d.language_moves.use)||[]).join('、'),
+      '- 停止用：' + ((d.language_moves&&d.language_moves.drop)||[]).join('、'),
+      '- 風險與前提：' + (d.risks||[]).join('、'), '');
+  }
+  if(m){
+    L.push('## 五、行銷矩陣','', m.ta_summary||'', '');
+    (m.segments||[]).forEach(x=>{
+      L.push('### ' + (x.name||'') + '（' + (x.code||'') + '）','',
+        '- 一句話：' + (x.one_liner||''),
+        '- 痛點：' + (x.pains||[]).join('、'),
+        '- 渴望：' + (x.desires||[]).join('、'),
+        '- 疑慮：' + (x.objections||[]).join('、'),
+        '- 被誰吸走：' + (x.rival_pull||''),
+        '- 打動訊息：' + (x.trigger_message||''), '');
+    });
+    L.push('| 分眾 | 漏斗 | 支柱 | 溝通主軸 | 形式 | 通路 | CTA | 指標 | 頻率 |',
+      '| --- | --- | --- | --- | --- | --- | --- | --- | --- |');
+    (m.matrix||[]).forEach(x=>{
+      L.push('| ' + [x.persona_name||x.persona_code, x.funnel, x.pillar, x.angle,
+        (x.formats||[]).join('、'), (x.channels||[]).join('、'), x.cta, x.kpi, x.cadence]
+        .map(cell).join(' | ') + ' |');
+    });
+    L.push('');
+  }
+  if(po){
+    L.push('## 六、貼文策略','');
+    (po.plans||[]).forEach(plan=>{
+      (plan.weeks||[]).forEach(w=>{
+        L.push('### ' + (plan.persona_name||plan.persona_code||'') + '：第 ' + (w.week||1) + ' 週　' + (w.theme||''),'',
+          '| 星期 | 主題 | 目的 | 支柱 | 角度 | 鉤子 | 差異點 | 形式 | CTA |',
+          '| --- | --- | --- | --- | --- | --- | --- | --- | --- |');
+        (w.posts||[]).forEach(x=>{
+          L.push('| ' + [x.day,x.topic,x.purpose,x.pillar,x.angle,x.hook,x.edge,x.format,x.cta].map(cell).join(' | ') + ' |');
+        });
+        L.push('');
+      });
+    });
+  }
+  if(S.copies.length){
+    L.push('## 七、品牌文案','');
+    S.copies.forEach(c=>{
+      L.push('### ' + (c.persona||'') + '　' + (c.day||'') + '　' + (c.topic||''),'');
+      (c.variants||[]).forEach(v=>{
+        L.push('**' + (v.label||'') + '**','', v.headline||'', '', v.body||'', '',
+          'CTA：' + (v.cta||''), '標籤：' + (v.hashtags||[]).map(h=>'#'+h).join(' '),
+          '視覺：' + (v.visual||''), '');
+      });
+    });
+  }
+  return L.join('\n');
+}
+$('expMd').addEventListener('click', ()=>{
+  if(!S.brand){ alert('還沒有可匯出的內容。'); return; }
+  download('品牌內容策略.md', toMarkdown(), 'text/markdown;charset=utf-8');
+});
+$('expJson').addEventListener('click', ()=>{
+  if(!S.brand){ alert('還沒有可匯出的內容。'); return; }
+  download('品牌內容策略.json', JSON.stringify({
+    page:{url:S.page.url,title:S.page.title},
+    competitors:S.comps.map(c=>({url:c.url,title:c.title})),
+    brand:S.brand, rivals:S.rivals, versus:S.versus,
+    diff:S.diff, matrix:S.matrix, posts:S.posts, copies:S.copies
+  }, null, 2), 'application/json');
+});
+$('doPrint').addEventListener('click', ()=>window.print());
+
+/* 測試連線 */
+$('testKey').addEventListener('click', async ()=>{
+  clearLog(0);
+  setState(0,'測試中','run');
+  $('testKey').disabled = true;
+  try{
+    const t = await callLLM('只回覆四個字。','回覆「連線正常」四個字，不要有其他內容。');
+    log(0,'模型回覆：'+t.trim().slice(0,40),'ok');
+    setState(0,'已設定','done');
+  }catch(e){
+    log(0,'失敗：'+e.message,'bad');
+    setState(0,'連線失敗','fail');
+  }finally{ $('testKey').disabled = false; }
+});
+
+/* 階段軌捲動 */
+document.querySelectorAll('#rail li').forEach(li=>{
+  li.addEventListener('click', ()=>{
+    document.querySelectorAll('#rail li').forEach(x=>x.classList.remove('active'));
+    li.classList.add('active');
+    $(li.dataset.go).scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+
+/* 啟動 */
+S.comps = [newComp(), newComp()];
+renderCompRows();
+refreshModels();
+updateSel();
+</script>
+</body>
+</html>

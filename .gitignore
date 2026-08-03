@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+._*
+
+# 編輯器
+.vscode/
+.idea/
+*.swp
+
+# 絕對不要進版控：金鑰與環境設定
+.env
+.env.*
+*.key
+secrets.*
+
+# 暫存與輸出
+*.log
+tmp/
+output/

@@ -14,7 +14,7 @@
 
 A brand content pipeline in **a single HTML file**. Download one file, open it in a browser, and run the whole flow: crawl your own site, analyze your positioning, break down your rivals, produce content.
 
-No backend, no install, no account, no dependencies.
+No backend, no install, no account, no JavaScript dependencies.
 
 ## Quick start
 
@@ -37,6 +37,17 @@ Two independent controls:
 Your API key lives only in your own browser `localStorage` and goes **straight to the model provider with no intermediary server**, because this project has no server at all.
 
 If you would rather not keep it, leave "Remember key on this computer" unticked and the key will only live in the current tab.
+
+## Fonts
+
+Chinese text uses **Source Han Sans (Noto Sans TC)**, loaded from Google Fonts. This is the only external resource in the file, and it is optional:
+
+- **Online**: everyone sees the same typeface
+- **Offline, on an intranet, or when Google is unreachable**: the font request fails silently and the page falls back to the system fonts on your own computer (PingFang TC on macOS, Microsoft JhengHei on Windows). **Nothing about the functionality changes.**
+
+In other words you can download the HTML and run it fully offline; the tool still works, it just renders Chinese with your own computer’s fonts. Your API key and your content never travel with that font request.
+
+If you would rather not have the external request at all, delete the three <link> lines near the top of the HTML. Nothing else is affected.
 
 ## Supported models
 

@@ -147,7 +147,20 @@ textarea{resize:vertical;font-family:var(--mono);font-size:12.5px;line-height:1.
 .row{display:grid;gap:12px}
 .row.c2{grid-template-columns:1fr 1fr}
 .row.c3{grid-template-columns:1fr 1fr 1fr}
-@media(max-width:700px){.row.c2,.row.c3{grid-template-columns:1fr}}
+.row.c4{grid-template-columns:1fr 1fr 1fr 1fr}
+@media(max-width:1050px){.row.c4{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.row.c2,.row.c3,.row.c4{grid-template-columns:1fr}}
+
+/* ---------- 介面語言切換 ---------- */
+.tophud{display:flex;flex-direction:column;align-items:flex-end;gap:9px}
+.langsw{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.langsw button{
+  background:var(--panel);border:0;padding:5px 12px;cursor:pointer;
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink-2);
+}
+.langsw button+button{border-left:1px solid var(--line)}
+.langsw button:hover{background:var(--panel-2);color:var(--ink)}
+.langsw button.on{background:var(--acid);color:#141400;font-weight:700}
 
 .btn{
   background:var(--acid);color:#12140a;border:none;border-radius:7px;
@@ -354,10 +367,16 @@ details.raw textarea{margin-top:9px;min-height:190px}
     <div class="bt">
       <h1>品牌內容引擎</h1>
       <span class="sub">我方對競品雙打拆解，一路跑到可直接發的文案</span>
-      <span class="by">BY <b>酒Ann</b> — AI APPLICATION &amp; DEVELOPER</span>
+      <span class="by">BY <b>酒Ann</b> · AI APPLICATION &amp; DEVELOPER</span>
     </div>
   </div>
-  <div class="pipe-hint">ME → RIVALS → VERSUS → WEDGE → MATRIX → POSTS → COPY</div>
+  <div class="tophud">
+    <div class="langsw">
+      <button type="button" class="on" data-lang="zh">中</button>
+      <button type="button" data-lang="en">EN</button>
+    </div>
+    <div class="pipe-hint">ME → RIVALS → VERSUS → WEDGE → MATRIX → POSTS → COPY</div>
+  </div>
 </header>
 
 <div class="layout">
@@ -394,7 +413,14 @@ details.raw textarea{margin-top:9px;min-height:190px}
   <section class="card" id="s0">
     <h2><span class="idx">00</span>模型與金鑰</h2>
     <p class="desc">金鑰只留在這個瀏覽器，直接送到模型供應商，不經過任何中介伺服器。</p>
-    <div class="row c3">
+    <div class="row c4">
+      <div>
+        <label class="f" for="outlang">產出語言</label>
+        <select id="outlang">
+          <option value="zh">繁體中文</option>
+          <option value="en">English</option>
+        </select>
+      </div>
       <div>
         <label class="f" for="prov">供應商</label>
         <select id="prov">
@@ -747,9 +773,306 @@ const PROVIDERS = {
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
+/* =========================================================
+   介面語言
+   字典以繁中原文當 key。翻譯不是逐個元素改，而是用 DOM walker
+   走訪文字節點查表替換，所以 JS template literal 裡渲染出來的
+   標籤也會一起被翻到，不需要逐條改動渲染程式碼。
+   每個文字節點會把原文記在 __zh 上，切回中文時直接還原。
+   ========================================================= */
+const I18N_EN = {
+  /* 標頭與導覽 */
+  '品牌內容引擎':'Brand Content Engine',
+  '我方對競品雙打拆解，一路跑到可直接發的文案':'Head-to-head teardown against your rivals, through to publish-ready copy',
+  '模型與金鑰':'Model & API Key',
+  '爬我的網站':'Crawl My Site',
+  '解析我的網站':'Analyze My Site',
+  '爬競品網站':'Crawl Rival Sites',
+  '解析競品網站':'Analyze Rival Sites',
+  '雙打比較':'Head-to-Head',
+  '差異化策略':'Differentiation',
+  '行銷矩陣規劃':'Marketing Matrix',
+  '貼文策略':'Post Plan',
+  '品牌文案':'Brand Copy',
+  '一鍵跑到貼文策略':'Run all through Post Plan',
+  '全部收合':'Collapse all',
+  '全部展開':'Expand all',
+  '（已收合）':'(collapsed)',
+  '匯出 Markdown':'Export Markdown',
+  '匯出 JSON':'Export JSON',
+  '列印':'Print',
+
+  /* 00 模型與金鑰 */
+  '金鑰只留在這個瀏覽器，直接送到模型供應商，不經過任何中介伺服器。':'Your key stays in this browser and goes straight to the model provider. No intermediary server is involved.',
+  '產出語言':'Output language',
+  '繁體中文':'Traditional Chinese',
+  '供應商':'Provider',
+  '模型名稱':'Model',
+  'API 金鑰':'API Key',
+  '模型 ID':'Model ID',
+  '貼上金鑰':'Paste your key',
+  '這家不需要金鑰，留空即可':'No key needed for this provider',
+  '測試連線':'Test connection',
+  '在這台電腦記住金鑰':'Remember key on this computer',
+  '已存在這台瀏覽器。':'Saved in this browser.',
+  '這個環境不能保存，金鑰只留在本次分頁。':'This environment cannot store it, so the key stays in this tab only.',
+  'Kimi（Moonshot）':'Kimi (Moonshot)',
+  '智譜 GLM':'Zhipu GLM',
+  'Ollama（本機模型）':'Ollama (local model)',
+  '長文脈絡與結構化輸出穩定。金鑰在 console.anthropic.com 申請。':'Strong long context and reliable structured output. Get a key at console.anthropic.com.',
+  '最多人已經有帳號。金鑰在 platform.openai.com 申請。':'Most people already have an account. Get a key at platform.openai.com.',
+  '有免費額度。金鑰在 aistudio.google.com 申請。':'Has a free tier. Get a key at aistudio.google.com.',
+  '單價便宜。金鑰在 platform.deepseek.com 申請。':'Low cost per token. Get a key at platform.deepseek.com.',
+  '長文處理見長。海外帳號請改用 api.moonshot.ai 網域。':'Good with long documents. Outside China use the api.moonshot.ai domain.',
+  '中國方案。glm-4-flash 有免費額度。':'China-based provider. glm-4-flash has a free tier.',
+  '中國方案。':'China-based provider.',
+  '速度極快、有免費額度，適合先試跑。金鑰在 console.groq.com 申請。':'Very fast with a free tier, good for a first run. Get a key at console.groq.com.',
+  '零 API 費用，跑在自己電腦上，不需要金鑰。啟動前請先在終端機執行 OLLAMA_ORIGINS=* ollama serve，否則瀏覽器會被 CORS 擋下。':'No API cost, runs on your own machine, no key required. Start it with OLLAMA_ORIGINS=* ollama serve first, otherwise the browser will be blocked by CORS.',
+
+  /* 01 抓取 */
+  '先試直連，被 CORS 擋就自動換讀取代理，全失敗時可以直接貼上文字繼續。':'Tries a direct fetch first and falls back to a read proxy if CORS blocks it. If everything fails you can paste the text manually.',
+  '我的品牌網址':'My brand URL',
+  '補充脈絡（選填）':'Extra context (optional)',
+  '例：主打 B2B 企業內訓，客單價偏高':'e.g. B2B corporate training, premium price point',
+  '抓取':'Fetch',
+  '改成手動貼上':'Paste manually',
+  '網頁文字':'Page text',
+  '把首頁、關於我們、產品頁的文字貼進來':'Paste the text from your home, about and product pages',
+  '請填入完整網址，包含 https://':'Enter a full URL including https://',
+  '三種抓取方式都失敗，請改用手動貼上。':'All three fetch methods failed. Please paste the text manually.',
+
+  /* 02 品牌解析 */
+  '從網站語料推定位、語氣、風格、語彙庫。推論的部分會標註，缺料的部分會列出來要你補。':'Infers positioning, tone, style and vocabulary from the site text. Inferences are flagged and missing evidence is listed for you to fill in.',
+  '解析我的品牌':'Analyze my brand',
+  '尚未執行。':'Not run yet.',
+  '編輯這一段資料（會直接影響下一段）':'Edit this data (it feeds directly into the next step)',
+  '編輯這一段資料':'Edit this data',
+  '套用修改':'Apply changes',
+  '一句話定位':'One-line positioning',
+  '一句話說法':'One-liner',
+  '差異點':'Point of difference',
+  '人稱距離':'Person and distance',
+  '語氣示範':'Tone example',
+  '語氣特徵':'Tone traits',
+  '句子節奏':'Sentence rhythm',
+  '正式程度':'Formality',
+  '常用詞':'Preferred words',
+  '應避免詞':'Words to avoid',
+  '風格關鍵詞':'Style keywords',
+  '產品服務':'Products and services',
+  '價值主張':'Value proposition',
+  '信任證據':'Trust evidence',
+  '現有證據':'Existing evidence',
+  '還缺的證據':'Evidence still missing',
+  '待補資訊':'Missing information',
+  '沒有我方網頁內容可以分析。':'There is no page content of your own to analyze.',
+
+  /* 03 / 04 競品 */
+  '一次可以放多個競品，抓不到的那一家可以單獨改成手動貼上，不會卡住其他家。':'Add several rivals at once. Any that fail can be switched to manual paste on their own without blocking the rest.',
+  '抓取全部競品':'Fetch all rivals',
+  '增加一個競品':'Add a rival',
+  '最多五家競品，再多會稀釋掉分析的銳利度。':'Five rivals maximum. More than that dilutes the analysis.',
+  '逐家拆定位、賣點、語氣、目標客群與價格訊號，並標出各家的強項與破口。':'Breaks down each rival by positioning, selling points, tone, target audience and price signals, and flags their strengths and gaps.',
+  '解析競品':'Analyze rivals',
+  '品類':'Category',
+  '在打誰':'Who they target',
+  '價格訊號':'Price signal',
+  '優勢':'Strengths',
+  '沒有可分析的競品語料，先抓取或手動貼上。':'No rival text to analyze. Fetch it or paste it manually first.',
+  '移除':'Remove',
+  '手動貼上':'Paste manually',
+  '尚未抓取':'Not fetched',
+  '把這家競品的首頁、產品頁文字貼進來':'Paste this rival’s home and product page text here',
+  '沒有競品語料，這一輪會略過雙打比較與差異化策略。':'No rival text, so this run will skip the head-to-head and differentiation steps.',
+
+  /* 05 雙打 */
+  '同一組構面把我方與各家競品放在一起對照，逐項給領先、相當或落後的判定，並找出沒人佔住的位置。':'Puts you and every rival on the same set of axes, calls each one ahead, level or behind, and finds the positions nobody owns.',
+  '想比較的構面（選填，用頓號分隔）':'Axes to compare (optional, separated by 、)',
+  '留空就讓模型自己挑 6 到 8 個關鍵構面':'Leave blank and the model will pick 6 to 8 key axes',
+  '市場':'Market',
+  '生成雙打比較':'Generate comparison',
+  '構面':'Axis',
+  '判定':'Verdict',
+  '我方':'Us',
+  '戰場':'Battleground',
+  '為什麼打得贏':'Why we can win',
+  '為什麼不打':'Why not to fight here',
+  '先解析我的網站。':'Analyze your own site first.',
+  '先解析競品網站。':'Analyze the rival sites first.',
+
+  /* 06 差異化 */
+  '決定要放大哪些優勢、避開哪些對手已經佔滿的戰場，收斂成一句定位陳述與幾根訊息支柱。':'Decides which strengths to amplify and which crowded battlegrounds to avoid, then condenses it into one positioning statement and a few message pillars.',
+  '生成差異化策略':'Generate differentiation',
+  '訊息支柱':'Message pillar',
+  '支柱':'Pillar',
+  '內容上怎麼放大':'How to amplify it in content',
+  '風險與前提':'Risks and assumptions',
+  '先跑完雙打比較。':'Run the head-to-head comparison first.',
+
+  /* 07 矩陣 */
+  '先切分眾，再用分眾乘漏斗階段鋪格子，每一格都掛回差異化策略的其中一根支柱。':'Segments the audience first, then lays out a grid of segment by funnel stage, with every cell tied back to one of the message pillars.',
+  '要切幾組分眾':'Number of segments',
+  '主要通路':'Main channels',
+  '這一季的商業目標':'Business goal this quarter',
+  '例：招生 40 人、名單 500 筆':'e.g. 40 enrollments, 500 leads',
+  '生成矩陣':'Generate matrix',
+  '情境':'Situation',
+  '被誰吸走':'Who pulls them away',
+  '打動訊息':'Message that lands',
+  '漏斗階段':'Funnel stage',
+  '通路':'Channel',
+  '內容形式':'Content format',
+  '指標':'Metric',
+  '目的':'Goal',
+  '先跑完差異化策略。':'Run the differentiation strategy first.',
+
+  /* 08 貼文策略 */
+  '每個分眾一張週表。左邊的方框勾起來，就會被送去第 09 段寫成完整文案。':'One weekly table per segment. Tick the boxes on the left to send those posts to step 09 to be written in full.',
+  '要排幾週':'Weeks to plan',
+  '一週幾天':'Posts per week',
+  '語氣覆寫（選填）':'Tone override (optional)',
+  '留空就沿用品牌解析的語氣':'Leave blank to reuse the tone from the brand analysis',
+  '生成貼文策略':'Generate post plan',
+  '全選':'Select all',
+  '全部取消':'Clear all',
+  '用勾選的貼文生成文案':'Write copy for selected',
+  '主題':'Theme',
+  '星期':'Day',
+  '形式':'Format',
+  '鉤子':'Hook',
+  '貼文角度與鉤子':'Angle and hook',
+  '溝通主軸':'Core message',
+  '頻率':'Frequency',
+  '先跑完行銷矩陣。':'Run the marketing matrix first.',
+
+  /* 09 文案 */
+  '依照勾選的貼文逐則展開成可直接發的文案，語氣鎖在我方品牌，訊息鎖在差異化策略。':'Expands each selected post into publish-ready copy, locked to your brand tone and your differentiation messaging.',
+  '主要平台':'Platform',
+  '依貼文策略建議的形式':'Use the format from the post plan',
+  '電子報':'Newsletter',
+  '內文長度':'Body length',
+  '短（120 字內）':'Short (under 120 words)',
+  '中（200 到 350 字）':'Medium (200 to 350 words)',
+  '長（400 到 600 字）':'Long (400 to 600 words)',
+  '每則要幾個版本':'Variants per post',
+  '生成品牌文案':'Generate brand copy',
+  '複製全部文案':'Copy all copy',
+  '先在第 08 段勾選要寫的貼文。':'Tick the posts you want written in step 08 first.',
+  '視覺調性':'Visual tone',
+  '開始用':'Start using',
+  '停止用':'Stop using',
+  '先跑完品牌解析，文案才有語感可以模仿。':'Run the brand analysis first so the copy has a voice to follow.',
+  '還沒有文案可以複製。':'There is no copy to copy yet.',
+  '這個瀏覽器不允許自動複製，請手動選取。':'This browser blocked automatic copying. Please select the text manually.',
+
+  /* 狀態與訊息 */
+  '未設定':'Not set',
+  '已設定':'Set',
+  '待執行':'Pending',
+  '執行中':'Running',
+  '抓取中':'Fetching',
+  '測試中':'Testing',
+  '已取得':'Fetched',
+  '取得':'Fetched',
+  '已貼上':'Pasted',
+  '已完成':'Done',
+  '完成':'Done',
+  '失敗':'Failed',
+  '全部失敗':'All failed',
+  '部分失敗':'Partly failed',
+  '連線失敗':'Connection failed',
+  '內容過短':'Content too short',
+  '已人工修改':'Manually edited',
+  '嘗試':'Trying',
+  '完成：':'Done: ',
+  '失敗：':'Failed: ',
+  '成功：':'Success: ',
+  '模型回覆：':'Model replied: ',
+  'JSON 格式有誤：':'Malformed JSON: ',
+  '還沒填 API 金鑰。':'No API key entered yet.',
+  '還沒填模型名稱。':'No model name entered yet.',
+  '還沒有可匯出的內容。':'There is nothing to export yet.',
+  '供應商沒有回傳內容：':'The provider returned no content: ',
+  '供應商回傳的不是 JSON。開頭：':'The provider did not return JSON. It starts with: ',
+  '模型沒有回傳可解析的 JSON。原始開頭：':'The model did not return parseable JSON. Raw start: ',
+  '連不上供應商。常見原因：這家沒開放瀏覽器直連（CORS）、金鑰網域填錯、或本機模型還沒啟動。原始訊息：':'Could not reach the provider. Common causes: this provider does not allow direct browser calls (CORS), the API domain is wrong, or a local model is not running. Original message: ',
+
+  /* 頁尾 */
+  '授權 · FSL-1.1-MIT':'License · FSL-1.1-MIT',
+  'Copyright 2026 酒Ann。原始碼公開，可自由閱讀、修改與散布。':'Copyright 2026 酒Ann. Source available: read, modify and redistribute freely.',
+  '可以':'Allowed',
+  '：自己用、公司內部用、改它、':': personal use, internal company use, modification, ',
+  '用於收費課程與企業內訓':'and use in paid courses and corporate training',
+  '不可以':'Not allowed',
+  '：把本軟體（含改名換皮版本）當產品販售、架成 SaaS 收費、做功能實質相同的競品。':': selling this software (including rebranded versions) as a product, charging for it as a hosted service, or building a substantially similar competing product.',
+  '每個版本於釋出滿兩年後自動轉為 MIT 授權。':'Each release converts to the MIT license two years after it is published.',
+  '商用授權洽談：':'Commercial licensing: '
+};
+
+/* 帶變數的字串查不到表，改用樣式比對 */
+const I18N_PAT = [
+  [/^信心 (.+)$/, 'Confidence $1'],
+  [/^已勾選 (\d+) 則$/, '$1 selected'],
+  [/^第 (\d+) 週：(.*)$/, 'Week $1: $2'],
+  [/^鉤子：(.*)$/, 'Hook: $1'],
+  [/^視覺：(.*)$/, 'Visual: $1'],
+  [/^提醒：(.*)$/, 'Note: $1'],
+  [/^第 (\d+) 家$/, 'Rival $1'],
+  [/^競品 (\d+)$/, 'Rival $1'],
+  [/^競品 ([A-Z])$/, 'Rival $1'],
+  [/^(\d+) 字$/, '$1 chars']
+];
+
+let LANG = (safeGet('bce.lang') === 'en') ? 'en' : 'zh';
+
+function t(s){
+  if(LANG === 'zh' || s == null) return s;
+  const k = String(s);
+  if(I18N_EN[k] != null) return I18N_EN[k];
+  for(const [re, rep] of I18N_PAT){ if(re.test(k)) return k.replace(re, rep); }
+  return s;
+}
+
+/* 走訪文字節點與屬性替換；原文記在節點上，切回中文時還原 */
+const I18N_ATTRS = ['placeholder','aria-label','title'];
+function applyLang(){
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while(w.nextNode()) nodes.push(w.currentNode);
+  nodes.forEach(n=>{
+    const tag = n.parentElement && n.parentElement.tagName;
+    if(tag === 'SCRIPT' || tag === 'STYLE' || tag === 'TEXTAREA') return;
+    if(n.__zh === undefined){
+      if(!n.nodeValue.trim()) return;
+      n.__zh = n.nodeValue;
+    }
+    const key = n.__zh.trim();
+    const tr = t(key);
+    n.nodeValue = (tr === key) ? n.__zh : n.__zh.replace(key, tr);
+  });
+  document.querySelectorAll('[placeholder],[aria-label],[title]').forEach(el=>{
+    I18N_ATTRS.forEach(a=>{
+      if(!el.hasAttribute(a)) return;
+      const k = '__' + a;
+      if(el[k] === undefined) el[k] = el.getAttribute(a);
+      el.setAttribute(a, t(el[k]));
+    });
+  });
+  document.documentElement.lang = (LANG === 'en') ? 'en' : 'zh-Hant';
+}
+
+function setLang(lang){
+  LANG = (lang === 'en') ? 'en' : 'zh';
+  safeSet('bce.lang', LANG);
+  document.querySelectorAll('.langsw button').forEach(b=>{
+    b.classList.toggle('on', b.dataset.lang === LANG);
+  });
+  applyLang();
+}
+
 function setState(n, txt, kind){
   const el = $('st'+n); if(!el) return;
-  el.textContent = txt;
+  el.textContent = t(txt);
   const li = el.closest('li');
   if(li) li.dataset.state = kind || '';
   /* 收合中的區塊一開始執行就自動展開，免得結果跑在看不見的地方 */
@@ -758,8 +1081,8 @@ function setState(n, txt, kind){
 function log(n, msg, cls){
   const box = $('log'+n); if(!box) return;
   box.hidden = false;
-  const t = new Date().toLocaleTimeString('zh-TW',{hour12:false});
-  box.innerHTML += `<span class="${cls||''}">[${t}] ${esc(msg)}</span>\n`;
+  const ts = new Date().toLocaleTimeString(LANG === 'en' ? 'en-GB' : 'zh-TW',{hour12:false});
+  box.innerHTML += `<span class="${cls||''}">[${ts}] ${esc(t(msg))}</span>\n`;
   box.scrollTop = box.scrollHeight;
 }
 function clearLog(n){ const b=$('log'+n); if(b){ b.innerHTML=''; b.hidden=true; } }
@@ -885,14 +1208,28 @@ function parseJSON(raw){
   throw new Error('模型沒有回傳可解析的 JSON。原始開頭：' + t.slice(0,180));
 }
 
-const JSON_RULE = `
+/* 產出語言由 00 段的下拉決定，與介面語言各自獨立 */
+function outLang(){ return ($('outlang') && $('outlang').value === 'en') ? 'en' : 'zh'; }
+
+const JSON_RULE_ZH = `
 輸出規則（必須遵守）：
 1. 只輸出一個 JSON 物件，不要有任何前言、說明或 Markdown 圍欄。
 2. 全部使用繁體中文；中文標點一律全形，數字、英文、網址一律半形。
-3. 不要使用破折號。
+3. 絕對不要使用破折號，任何長度的橫線都不行。需要停頓就用逗號或句號。
 4. 沒有證據的內容標成推論，欄位 confidence 填 low；絕不編造具體數字、價格、客戶名稱或獎項。
 5. 談到競品時只根據給定語料判讀，不引用語料以外的傳聞，也不做貶抑性的無據指控。
 `;
+
+const JSON_RULE_EN = `
+OUTPUT RULES (must follow):
+1. Output exactly one JSON object. No preamble, no commentary, no Markdown fences.
+2. Write every value in English, using plain ASCII punctuation.
+3. Never use em dashes or en dashes. Use a comma or a full stop instead.
+4. Mark anything not supported by the supplied text as an inference and set confidence to low. Never invent specific numbers, prices, client names or awards.
+5. When describing rivals, judge only from the supplied text. Do not repeat outside rumours and do not make unsupported negative claims.
+`;
+
+function jsonRule(){ return outLang() === 'en' ? JSON_RULE_EN : JSON_RULE_ZH; }
 
 /* =========================================================
    抓取共用
@@ -1078,7 +1415,7 @@ $('runFetchComps').addEventListener('click', ()=>{ doFetchComps(); });
    ========================================================= */
 function brandPrompt(){
   return {
-    sys: '你是資深品牌策略顧問，擅長從一個品牌的公開文字反推它的定位、語氣與風格。你只根據給定語料判讀，不腦補。' + JSON_RULE,
+    sys: '你是資深品牌策略顧問，擅長從一個品牌的公開文字反推它的定位、語氣與風格。你只根據給定語料判讀，不腦補。' + jsonRule(),
     usr: `以下是我方品牌網站的文字語料，請解析這個品牌。
 
 網址：${S.page.url || '未提供'}
@@ -1153,7 +1490,7 @@ function renderBrand(b){
    ========================================================= */
 function rivalPrompt(c, idx){
   return {
-    sys: '你是競品分析研究員，只根據給定語料判讀一家公司的公開定位與說法，不引用語料以外的資訊，也不做無據的貶抑。' + JSON_RULE,
+    sys: '你是競品分析研究員，只根據給定語料判讀一家公司的公開定位與說法，不引用語料以外的資訊，也不做無據的貶抑。' + jsonRule(),
     usr: `以下是一家競品的網站語料，請拆解這家競品。
 
 網址：${c.url || '未提供'}
@@ -1215,7 +1552,7 @@ function renderRivals(r){
 function versusPrompt(){
   const axes = $('axes').value.trim();
   return {
-    sys: '你是市場定位分析師，擅長把我方與競品放在同一組構面上對照，並誠實指出我方落後的地方。' + JSON_RULE,
+    sys: '你是市場定位分析師，擅長把我方與競品放在同一組構面上對照，並誠實指出我方落後的地方。' + jsonRule(),
     usr: `把我方品牌與各家競品放在同一組構面上做雙打比較。市場：${$('mkt').value.trim()}
 ${axes ? '指定構面：' + axes : '請自己挑 6 到 8 個對這個品類真正關鍵的構面。'}
 判定必須誠實，我方落後的地方就寫落後，不要每一格都寫領先。
@@ -1280,7 +1617,7 @@ function renderVersus(v){
    ========================================================= */
 function diffPrompt(){
   return {
-    sys: '你是定位策略顧問。你的產出必須是可執行的取捨，明確說出要放大什麼、要放棄什麼，而不是列一堆都很重要的優點。' + JSON_RULE,
+    sys: '你是定位策略顧問。你的產出必須是可執行的取捨，明確說出要放大什麼、要放棄什麼，而不是列一堆都很重要的優點。' + jsonRule(),
     usr: `依據雙打比較的結果，訂出我方的差異化策略。
 必須包含明確的取捨：哪些戰場要主動放棄，理由是什麼。
 每根訊息支柱都要指出可以拿什麼當證據；如果我方目前沒有證據，就寫進 evidence_needed，不要編。
@@ -1343,7 +1680,7 @@ function renderDiff(d){
    ========================================================= */
 function matrixPrompt(){
   return {
-    sys: '你是內容行銷策略規劃師，產出的矩陣必須每一格都可執行，不能只寫抽象方向。' + JSON_RULE,
+    sys: '你是內容行銷策略規劃師，產出的矩陣必須每一格都可執行，不能只寫抽象方向。' + jsonRule(),
     usr: `先依品牌與差異化策略切出 ${$('nPersona').value} 組分眾，再規劃行銷矩陣。
 每組分眾必須在痛點與購買動機上明顯不同，能各自撐起一條內容線。
 每個分眾都要涵蓋認知、考慮、轉換、留存四個漏斗階段，共 分眾數 乘 4 格。
@@ -1448,7 +1785,7 @@ function postsPrompt(){
   const dayN = parseInt($('days').value,10);
   const names = ['星期一','星期二','星期三','星期四','星期五','星期六','星期日'].slice(0,dayN);
   return {
-    sys: '你是社群內容主編，排出來的週表要能直接交給小編執行，每一則都有清楚的角度與鉤子。' + JSON_RULE,
+    sys: '你是社群內容主編，排出來的週表要能直接交給小編執行，每一則都有清楚的角度與鉤子。' + jsonRule(),
     usr: `依據行銷矩陣，為每一個分眾排 ${$('weeks').value} 週的貼文策略，一週 ${dayN} 則，使用這些日名：${names.join('、')}。
 語氣：${$('tone').value.trim() || '沿用品牌解析的語氣特徵與語彙庫'}
 每一週的貼文必須橫跨不同漏斗階段，不能整週都在賣。
@@ -1605,7 +1942,7 @@ function copyPrompt(batch){
     brand_name: S.brand?.brand_name, one_liner: S.brand?.one_liner
   };
   return {
-    sys: '你是這個品牌的社群主筆。你寫的文案要像品牌自己寫的，不是像通用行銷模板。開場第一句必須抓住人，不要用問句開場的老套。' + JSON_RULE,
+    sys: '你是這個品牌的社群主筆。你寫的文案要像品牌自己寫的，不是像通用行銷模板。開場第一句必須抓住人，不要用問句開場的老套。' + jsonRule(),
     usr: `依據以下貼文規格，逐則寫出可直接發布的完整文案。
 平台：${$('platform').value}
 內文長度：${$('len').value}
@@ -2020,7 +2357,7 @@ function setFold(sec, collapsed){
 function openCard(sec){ if(sec?.classList.contains('collapsed')) setFold(sec,false); }
 function syncToggleAll(){
   const allFolded = CARDS.every(c=>c.classList.contains('collapsed'));
-  $('toggleAll').textContent = allFolded ? '全部展開' : '全部收合';
+  $('toggleAll').textContent = t(allFolded ? '全部展開' : '全部收合');
 }
 
 CARDS.forEach(sec=>{
@@ -2070,7 +2407,18 @@ function wrapTables(){
   });
 }
 wrapTables();
-new MutationObserver(wrapTables).observe(document.querySelector('main'), {childList:true, subtree:true});
+/* 新渲染出來的內容要補翻譯；只看 childList，改 nodeValue 不會回彈成迴圈 */
+new MutationObserver(()=>{ wrapTables(); if(LANG !== 'zh') applyLang(); })
+  .observe(document.querySelector('main'), {childList:true, subtree:true});
+
+/* 介面語言切換 */
+document.querySelectorAll('.langsw button').forEach(b=>{
+  b.addEventListener('click', ()=> setLang(b.dataset.lang));
+});
+
+/* 產出語言記憶 */
+$('outlang').value = (safeGet('bce.outlang') === 'en') ? 'en' : 'zh';
+$('outlang').addEventListener('change', ()=> safeSet('bce.outlang', $('outlang').value));
 
 /* 階段軌捲動 */
 document.querySelectorAll('#rail li').forEach(li=>{
@@ -2088,6 +2436,7 @@ S.comps = [newComp(), newComp()];
 renderCompRows();
 refreshModels();
 updateSel();
+setLang(LANG);
 </script>
 </body>
 </html>

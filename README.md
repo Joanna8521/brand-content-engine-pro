@@ -5,7 +5,11 @@
 <h1 align="center">品牌內容引擎 Brand Content Engine</h1>
 
 <p align="center">
-  by <b>酒Ann</b> — AI Application &amp; Developer / Online Educator &amp; Customized Creator
+  by <b>酒Ann</b> · AI Application &amp; Developer / Online Educator &amp; Customized Creator
+</p>
+
+<p align="center">
+  <b>繁體中文</b> · <a href="README.en.md">English</a>
 </p>
 
 一個**單檔 HTML** 的品牌內容生產工具。下載一個檔案、用瀏覽器打開，就能跑完整條流程：爬自己的網站 → 解析品牌定位 → 分析競品 → 產出內容。
@@ -23,9 +27,16 @@
 
 ## 隱私
 
-金鑰只存在你自己的瀏覽器 `localStorage`，並且**直接送到模型供應商，不經過任何中介伺服器**——因為這個專案根本沒有伺服器。
+金鑰只存在你自己的瀏覽器 `localStorage`，並且**直接送到模型供應商，不經過任何中介伺服器**，因為這個專案根本沒有伺服器。
 
 不想留存的話，不要勾「在這台電腦記住金鑰」，金鑰就只活在當前分頁。
+
+## 介面語言與產出語言
+
+兩個獨立的控制項：
+
+- **介面語言**：右上角的 中 / EN 切換，會換掉所有標籤、按鈕與訊息，選擇會記在這個瀏覽器裡。
+- **產出語言**：00 段的下拉選單，決定模型用什麼語言寫。可以介面看英文、產出繁中，或反過來。
 
 ## 支援的語言模型
 
@@ -80,8 +91,8 @@ newprovider: {
 
 **這不是 open source，是 source-available。** 原始碼公開、可自由閱讀修改，但有一項限制。
 
-- [LICENSE](LICENSE) — Functional Source License 1.1（MIT Future License）
-- [ADDITIONAL-GRANT.md](ADDITIONAL-GRANT.md) — 著作權人發布的額外授權，**放寬**教學用途的限制
+- [LICENSE](LICENSE)：Functional Source License 1.1（MIT Future License）
+- [ADDITIONAL-GRANT.md](ADDITIONAL-GRANT.md)：著作權人發布的額外授權，**放寬**教學用途的限制
 
 三句話版本：
 
@@ -97,6 +108,6 @@ newprovider: {
 
 ## 聯絡
 
-**酒Ann** — cpw688@gmail.com
+**酒Ann**　cpw688@gmail.com
 
 AI 應用開發 / 線上教學 / 客製化開發

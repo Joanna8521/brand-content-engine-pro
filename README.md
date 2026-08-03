@@ -33,7 +33,7 @@
 
 | 供應商 | 建議模型 | 金鑰申請 | 適合誰 |
 |---|---|---|---|
-| **Anthropic Claude** | `claude-sonnet-5`、`claude-opus-5`、`claude-haiku-4-5-20251001` | console.anthropic.com | 課堂預設 |
+| **Anthropic Claude** | `claude-sonnet-5`、`claude-opus-5`、`claude-haiku-4-5-20251001` | console.anthropic.com | 長文脈絡與結構化輸出穩定 |
 | **OpenAI** | `gpt-4o-mini`、`gpt-4o`、`gpt-4.1-mini` | platform.openai.com | 最多人已有帳號 |
 | **Google Gemini** | `gemini-2.0-flash`、`gemini-2.5-flash`、`gemini-2.5-pro` | aistudio.google.com | 有免費額度 |
 | **DeepSeek** | `deepseek-chat`、`deepseek-reasoner` | platform.deepseek.com | 單價便宜 |

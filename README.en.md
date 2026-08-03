@@ -23,7 +23,7 @@ No backend, no install, no account, no dependencies.
 3. Under "00 Model & API Key" pick a provider and paste an API key
 4. Hit "Test connection", then work down the steps
 
-To try it at zero cost, pick **Groq** (free tier, very fast) or **Ollama** (runs on your own machine, completely free).
+No API key yet? See [Starting at zero cost: getting a Groq key](#starting-at-zero-cost-getting-a-groq-key). No credit card, about a minute to your first run.
 
 ## Interface and output language
 
@@ -57,6 +57,29 @@ Nine providers:
 ### About CORS
 
 This is a pure front end tool, so calling an API directly from the browser requires the provider to allow cross origin requests. **Anthropic, OpenAI, Gemini and Groq are known to work.** The China based providers (DeepSeek, Kimi, GLM, MiniMax) depend on their own CORS policy; if one blocks the request the tool will tell you exactly why.
+
+### Starting at zero cost: getting a Groq key
+
+Groq has a free plan and signing up takes about a minute with no credit card:
+
+1. Go to `console.groq.com` and sign in with Google or GitHub
+2. Open **API Keys** in the sidebar
+3. Click **Create API Key** and give it a name (for example `brand-content-engine`)
+4. **The key is shown in full only once**, so copy it right away
+5. Back in the tool, pick Groq as the provider, paste the key into "API Key" and hit "Test connection"
+
+Free plan rate limits:
+
+| Model | Requests / min | Tokens / min |
+|---|---|---|
+| `llama-3.3-70b-versatile` | 30 | 12,000 |
+| `llama-3.1-8b-instant` | 30 | 6,000 |
+
+**Worth knowing up front**: when analyzing a site this tool sends up to 18,000 characters of source text, which can easily exceed the free plan ceiling of 12,000 tokens per minute. On longer sites Groq's free plan will report a rate limit. Three ways around it:
+
+1. Switch to "Paste manually" and paste only the key passages from the home and about pages
+2. Wait a minute and try again
+3. Run the early steps on another provider and switch back to Groq for the post plan and copy steps
 
 ### Using Ollama
 
